@@ -1,0 +1,15 @@
+.error-message__wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    color: red;
+    font-weight: 500;
+    svg {
+        font-size: 13px;
+        margin-right: 2px;
+    }
+    .error-message{
+        color: red;
+        font-size: 14px;
+    }
+}
