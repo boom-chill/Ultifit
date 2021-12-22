@@ -6,11 +6,11 @@ import ErrorMessage from './../ErrorMessage/ErrorMessage';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import CustomButton from './../CustomButton/CustomButton';
 
-export function Input({ title, keyboardType, name, control, rules, errors, defaultValue }) {
+export function Input({ title, keyboardType, name, control, rules, errors, defaultValue, numberOfLines, inputStyle, placeholder }) {
     const { field } = useController({
         name,
         control,
-        defaultValue: String(defaultValue) || '',
+        defaultValue: String(defaultValue || ''),
         rules: rules,
     })
     return (
@@ -20,10 +20,13 @@ export function Input({ title, keyboardType, name, control, rules, errors, defau
             </Text>
             <TextInput
                 //value={field.value}
-                defaultValue={String(defaultValue)}
+                numberOfLines={numberOfLines}
+                multiline={numberOfLines ? true : false}
+                defaultValue={String(defaultValue || '')}
                 onChangeText={field.onChange}
                 keyboardType={keyboardType}
-                style={{ ...styles.input, borderColor: '#C1C1C1', height: 36 }}
+                placeholder={placeholder}
+                style={{ ...styles.input, borderColor: '#C1C1C1', height: 36, ...inputStyle }}
             />
             {
                 errors[name] ? <ErrorMessage errorMessage={errors[name].message} /> : <View />
@@ -140,7 +143,7 @@ const styles = StyleSheet.create({
         borderColor: "#20232a",
         borderWidth: 1,
         width: '100%',
-        marginBottom: 10,
+        marginBottom: 5,
     },
 
     select: {

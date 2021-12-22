@@ -4,9 +4,11 @@ import { useDispatch } from 'react-redux';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import FoodsScreen from './Screen/FoodsScreen';
 import IngredientsScreen from './Screen/IngredientsScreen';
+import CreateFoodScreen from './Screen/CreateFoodScreen';
 
 
-function Food({ navigation }) {
+function Food({ navigation, route }) {
+
     const TopTab = createMaterialTopTabNavigator()
     return (
         <TopTab.Navigator screenOptions={({ route }) => ({
@@ -14,11 +16,16 @@ function Food({ navigation }) {
             tabBarIndicatorStyle: { backgroundColor: '#9FDAFE', height: 3 },
             tabBarLabelStyle: { fontSize: 18, fontWeight: '600', textTransform: 'capitalize', },
             tabBarStyle: { shadowColor: 'white' },
-        })} >
-            <TopTab.Screen name="FoodsScreen" component={FoodsScreen} options={{ title: 'Foods' }} />
-            <TopTab.Screen name="IngredientsScreen" component={IngredientsScreen} options={{ title: 'Ingredients' }} />
+            tabBarItemStyle: { fontSize: '1px' },
 
-        </TopTab.Navigator>
+        })}
+        // swipeEnabled={false}
+        >
+            <TopTab.Group>
+                <TopTab.Screen name="FoodsScreen" component={FoodsScreen} options={{ title: 'Foods' }} />
+                <TopTab.Screen name="IngredientsScreen" component={IngredientsScreen} options={{ title: 'Ingredients' }} />
+            </TopTab.Group>
+        </TopTab.Navigator >
 
     );
 }

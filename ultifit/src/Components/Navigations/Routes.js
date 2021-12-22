@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {  View, Image } from 'react-native';
 import { getHeaderTitle } from '@react-navigation/elements';
+import { createStackNavigator } from '@react-navigation/stack';
 
 import { useSelector } from 'react-redux';
 
@@ -21,6 +22,7 @@ export default function Routes() {
     const user = useSelector((state) => state.user.user)
     console.log("🚀 ~ file: Routes.js ~ line 22 ~ Routes ~ user", user)
     const Tab = createBottomTabNavigator();
+    const RootStack = createStackNavigator()
     return (
       <NavigationContainer>
         {

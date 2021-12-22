@@ -8,9 +8,10 @@ const FoodSchema = new Schema({
     },
     ingredients: [
         {
+            _id: false,
             _ingerdientID: { // cái này chứa ObjectId của foodIngredientModel để link qua
                 type: Schema.ObjectId,
-                ref: 'FoodIngredients',
+                ref: 'foodigredients',
                 required: true,
             },
             mass: {// tính theo gram
@@ -19,6 +20,11 @@ const FoodSchema = new Schema({
             },
         }
     ],
+    thumbnail: { // được từ thành phần
+        type: String,
+        required: false,
+        default: 0,
+    },
     carb: { // được từ thành phần
         type: Number,
         required: true,
@@ -34,9 +40,14 @@ const FoodSchema = new Schema({
         required: true,
         default: 0,
     },
-    calory: { // được từ thành phần
+    calories: { // được từ thành phần
         type: Number,
         required: true,
+        default: 0,
+    },
+    description: {// để phân biệt nếu sau này có thêm chức năng ng dùng tự add thêm
+        type: String,
+        required: false,
     },
     author: {// để phân biệt nếu sau này có thêm chức năng ng dùng tự add thêm
         type: String,
@@ -52,4 +63,4 @@ const FoodSchema = new Schema({
     //auto add createdAt, updatedAt
 }, {timestamps: true})
 
-export const productModel = mongoose.model('Foods', FoodSchema)
+export const foodModel = mongoose.model('Foods', FoodSchema)
