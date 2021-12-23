@@ -76,7 +76,7 @@ const UserSchema = new Schema({
     ],
 
     // LỊCH SỬ
-    history: [
+    histories: 
         {
             _id: false,
             required: false,
@@ -86,10 +86,9 @@ const UserSchema = new Schema({
                     required: false,
                     exercises: [ // chứa chuỗi bài tập người dùng đã tập
                         {
-                            _id: false,
-                            _exerciseID: { // cái này chứa ObjectId của exerciseModel để link qua
+                            _id: { // cái này chứa ObjectId của exerciseModel để link qua
                                 type: mongoose.Types.ObjectId,
-                                ref: 'Exercises',
+                                ref: 'exercises',
                                 rrequired: true,
                             },
                             practiceTime: { // thờI gian tập
@@ -100,9 +99,10 @@ const UserSchema = new Schema({
                                 type: Number,
                                 required: true,
                             },
+                            required: false,
                         }
                     ],
-                    caloriesBurn:{// được tính trên client, dùng để hiển thị chi tiết
+                    calories:{// được tính trên client, dùng để hiển thị chi tiết
                         type: Number,
                         required: true,
                     },
@@ -111,39 +111,13 @@ const UserSchema = new Schema({
             ],
             eaten: [
                 {
-                    _id: false,
-                    required: false,
-                    ingredients: [ // chứa chuỗi thành phần món ăn trong ngày
-                        {
-                            _id: false,
-                            required: false,
-                            _ingerdientID: { // cái này chứa ObjectId của FoodIngredientsModel để link qua
-                                type: mongoose.Types.ObjectId,
-                                ref: 'FoodIngredients',
-                                required: true,
-                            },
-                            
-                        }
-                    ],
-                    foods: [// chứa chuỗi món ăn trong ngày
-                        {
-                            _id: false,
-                            required: false,
-                            _foodID: { // cái này chứa ObjectId của FoodModel để link qua
-                                type: mongoose.Types.ObjectId,
-                                ref: 'Foods',
-                                required: true,
-                            },
-                        }
-                    ],
-                    caloriesIn:{// được tính trên client, dùng để hiển thị chi tiết
-                        type: Number,
+                    _id: { // cái này chứa ObjectId của FoodModel để link qua
+                        type: mongoose.Types.ObjectId,
+                        ref: 'foods',
                         required: true,
                     },
-                    time: {
-                        type: Date,
-                        required: true,
-                    } 
+                    time: {type: Date, default: Date.now()},
+                    required: false,
                 }
             ],
             drank: [
@@ -166,7 +140,7 @@ const UserSchema = new Schema({
             ]
         },
        
-    ],
+
 
     //auto add createdAt, updatedAt
 }, {timestamps: true})

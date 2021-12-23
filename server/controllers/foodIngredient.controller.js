@@ -3,7 +3,7 @@ import stream from 'stream'
 import { foodIngredientModel } from './../models/foodIngredientModel.js';
 
 export const getIngredients = async (req, res) => {
-    console.log('enter get ingredients')
+    console.log('Get Ingredients')
     try {
         const ingredients = await foodIngredientModel.find({})
 

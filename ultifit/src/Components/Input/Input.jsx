@@ -6,7 +6,7 @@ import ErrorMessage from './../ErrorMessage/ErrorMessage';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import CustomButton from './../CustomButton/CustomButton';
 
-export function Input({ title, keyboardType, name, control, rules, errors, defaultValue, numberOfLines, inputStyle, placeholder }) {
+export function Input({ title, keyboardType, name, control, rules, errors, defaultValue, numberOfLines, inputStyle, placeholder, onChangeText }) {
     const { field } = useController({
         name,
         control,
@@ -23,7 +23,7 @@ export function Input({ title, keyboardType, name, control, rules, errors, defau
                 numberOfLines={numberOfLines}
                 multiline={numberOfLines ? true : false}
                 defaultValue={String(defaultValue || '')}
-                onChangeText={field.onChange}
+                onChangeText={onChangeText ? onChangeText : field.onChange}
                 keyboardType={keyboardType}
                 placeholder={placeholder}
                 style={{ ...styles.input, borderColor: '#C1C1C1', height: 36, ...inputStyle }}

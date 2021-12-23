@@ -4,6 +4,8 @@ import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import * as fs from 'fs';
 import { TDEECal } from './../utils/calculator.js';
+import { foodIngredientModel } from '../models/foodIngredientModel.js';
+import { foodModel } from '../models/foodModel.js';
 
 const expAccessTime = '5s' //1h
 
@@ -24,7 +26,7 @@ export const postLogin = async (req, res) => {
     try {
         const { username, password } = req.body
  
-        const existUser = await userModel.findOne({username: username}, {_id: 0, createdAt: 0})
+        let existUser = await userModel.findOne({username: username}, {_id: 0, createdAt: 0})
         
         if(!existUser) {
             return res.json( {
@@ -45,6 +47,30 @@ export const postLogin = async (req, res) => {
             }, process.env.ACCESS_TOKEN_SECRET, {
                 expiresIn: expAccessTime,
             })
+
+            //GET FOOD
+            let newFoodHistories = []
+            for (const foodHistory of existUser.histories.eaten) {
+            
+                let food = await foodModel.findOne(
+                    {_id: foodHistory._id}, 
+                    {createdAt: 0, updatedAt: 0, __v: 0, ingredients: 0, author: 0, description: 0}
+                )
+
+                const newFood = {
+                    ...food._doc,
+                    time: foodHistory.time
+                }
+
+                newFoodHistories.push(newFood)
+            }
+            
+            existUser = {
+                ...existUser._doc,
+                histories: {
+                    eaten: newFoodHistories,
+                }
+            }
     
             res.json({
                 message: {

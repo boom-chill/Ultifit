@@ -1,7 +1,7 @@
 import axios from 'axios'
 import React from 'react'
 import { baseWideUrl, baseUrl } from '../../../../constants/url';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import CustomButton from './../../../Components/CustomButton/CustomButton';
 import { Input } from '../../../Components/Input/Input';
 import { useForm } from "react-hook-form";
@@ -9,11 +9,16 @@ import { StyleSheet, View, Text, SafeAreaView, ScrollView, Image, Button, Toucha
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons'
 import { AntDesign } from '@expo/vector-icons'
+import { kFormatter } from '../../../utils/kFormatter';
+import { addUser, updateFoods, updateFoodsHistories } from '../../../features/user/user';
+import { addFoods } from '../../../features/food/food';
 
 export default function FoodsScreen() {
     const { handleSubmit, control, formState: { errors }, watch } = useForm();
+    const dispatch = useDispatch()
 
     const user = useSelector((state) => state.user.user)
+    const userFoods = useSelector((state) => state.food.foods)
 
     const [chooseMode, setChooseMode] = React.useState(false)
 
@@ -21,97 +26,104 @@ export default function FoodsScreen() {
         ingredients: []
     });
 
+    const [foodDelete, setFoodDelete] = React.useState('')
+
     const [modalVisible, setModalVisible] = React.useState(false);
 
-    const imgUrl = baseWideUrl + '/' + user.avatar
-    const [image, setImage] = React.useState({
-        uri: imgUrl
-    })
+
+    const [image, setImage] = React.useState({})
 
     const [foods, setFoods] = React.useState([])
 
     React.useEffect(() => {
-        try {
-            axios.get(`${baseUrl}/api/foods`, {
-                params: {
-                    username: user.username
+
+        axios.get(`${baseUrl}/api/foods`, {
+            params: {
+                username: user.username,
+            }
+        })
+            .then((response) => {
+                const error = response.data?.error
+                if (!error) {
+                    const resData = response.data.message
+
+                    dispatch(addFoods(resData))
+
+                    const foods = AddIsChoose(resData)
+                    setFoods(foods)
+                } else {
+
                 }
             })
-                .then((response) => {
-                    const error = response.data?.error
-                    if (!error) {
-                        const resData = response.data.message
-
-                        let newFoods = []
-                        resData.forEach((food) => {
-                            const newFood = {
-                                ...food,
-                                isChoose: false,
-                            }
-
-                            newFoods.push(newFood)
-                        })
-
-                        setFoods(resData)
-                    } else {
-
-                    }
-                })
-        } catch (error) {
-            console.log(error)
-        }
     }, [])
 
+    React.useEffect(() => {
+        const foods = AddIsChoose(userFoods)
+        setFoods(foods)
+    }, [userFoods])
+
+    const AddIsChoose = (foods) => {
+        let newFoods = []
+
+        foods.forEach((food) => {
+            const newFood = {
+                ...food,
+                isChoose: false,
+            }
+
+            newFoods.push(newFood)
+        })
+
+        return newFoods
+    }
+
     const onSubmit = (data) => {
-        console.log('submit')
-        console.log(ingredients)
-        console.log(data)
 
         let newFat = 0
         let newCalo = 0
         let newPro = 0
         let newCarb = 0
 
-        let sendIngredients = []
-        ingredients.forEach((ingredient, idx) => {
-            if (ingredient.isChoose) {
-                const newIngredient = {
-                    _ingerdientID: ingredient._id,
-                    mass: watch(ingredient._id),
-                }
-                sendIngredients.push(newIngredient)
+        foodEdit.ingredients.forEach((ingredient, idx) => {
+            newFat += ingredient.fat * ingredient.mass
+            newCalo += ingredient.calories * ingredient.mass
+            newPro += ingredient.protein * ingredient.mass
+            newCarb += ingredient.carb * ingredient.mass
 
-                newFat += ingredient.fat
-                newCalo += ingredient.calories
-                newPro += ingredient.protein
-                newCarb += ingredient.carb
-            }
         })
 
+        let newFoodEdit = {
+            ...foodEdit,
+            fat: newFat,
+            calories: newCalo,
+            protein: newPro,
+            carb: newCarb,
+        }
+
         const dataSend = {
-            data: {
-                name: data.name,
-                ingredients: sendIngredients,
-                carb: newCarb,
-                protein: newPro,
-                fat: newFat,
-                calories: newCalo,
-                author: user.username,
-                description: data.descript
-            },
+            data: newFoodEdit,
             img: image.base64 ?? null,
         }
 
-
-        console.log('data', dataSend)
-
         try {
-            axios.post(`${baseUrl}/api/foods`,
-                dataSend
-            ).then((response) => {
-                const resData = response.data
-                console.log(resData)
-            })
+            axios.patch(`${baseUrl}/api/foods`,
+                dataSend, {
+                params: {
+                    username: user.username,
+                }
+            }
+            )
+                .then((response) => {
+                    const error = response.data?.error
+                    if (!error) {
+                        const resData = response.data.message
+
+                        dispatch(addFoods(resData))
+                        setModalVisible(false)
+                    } else {
+
+                    }
+                })
         } catch (error) {
             console.log(error)
         }
@@ -151,6 +163,50 @@ export default function FoodsScreen() {
         setChooseMode(!chooseMode)
     }
 
+    const cancelUpdate = () => {
+        setImage({
+            ...image,
+            base64: null
+        })
+        setFoodEdit({
+            ingredients: []
+        })
+        setModalVisible(false)
+    }
+
+    const handleMassChange = (ingredient, mass) => {
+        let newIngredient = {
+            ...ingredient,
+            mass: mass,
+        }
+        let newIngredients = [
+            ...foodEdit.ingredients,
+        ]
+        const objIndex = foodEdit.ingredients.findIndex((obj => obj._id == ingredient._id))
+        newIngredients[objIndex] = {
+            ...newIngredient
+        }
+
+        setFoodEdit({
+            ...foodEdit,
+            ingredients: newIngredients
+        })
+    }
+
+    const handleNameChange = (name) => {
+        setFoodEdit({
+            ...foodEdit,
+            name: name,
+        })
+    }
+
+    const handleDescriptChange = (des) => {
+        setFoodEdit({
+            ...foodEdit,
+            description: des,
+        })
+    }
+
     const handleItemChooseChange = (idx) => {
         let newFoods = [...foods]
 
@@ -159,6 +215,63 @@ export default function FoodsScreen() {
             isChoose: !newFoods[idx].isChoose
         }
         setFoods(newFoods)
+    }
+
+    const handleFoodDelete = () => {
+        try {
+            axios.delete(`${baseUrl}/api/foods/${foodDelete}`, {
+                params: {
+                    username: user.username
+                }
+            })
+                .then((response) => {
+                    const error = response.data?.error
+                    if (!error) {
+                        const resData = response.data.message
+
+                        dispatch(addFoods(resData))
+                        setChooseMode(false)
+                    } else {
+
+                    }
+                })
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const handleAddFood = (food) => {
+
+        const dataSend = {
+            _id: food._id,
+            time: Date.now(),
+        }
+
+        try {
+            axios.post(`${baseUrl}/api/histories`,
+                dataSend,
+                {
+                    params: {
+                        username: user.username
+                    }
+                })
+                .then((response) => {
+                    const error = response.data?.error
+                    if (!error) {
+                        const resData = response.data.message
+                        dispatch(updateFoodsHistories(resData))
+                    } else {
+
+                    }
+                })
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const handleNoticeFoodDelete = (id) => {
+        setFoodDelete(id)
+        setChooseMode(true)
     }
 
 
@@ -171,6 +284,7 @@ export default function FoodsScreen() {
                     visible={modalVisible}
                     onRequestClose={() => {
                         setModalVisible(false)
+                        cancelUpdate()
                     }}
                     statusBarTranslucent={true}
                 >
@@ -201,9 +315,12 @@ export default function FoodsScreen() {
 
                                             >
                                                 {
-                                                    foodEdit.thumbnail
-                                                        ? <Image source={{ uri: `${baseWideUrl}/${foodEdit?.thumbnail}` }} style={{ width: '100%', height: 196, borderRadius: 10 }}
-                                                            resizeMode={'cover'} />
+                                                    foodEdit.thumbnail || image?.base64
+                                                        ? (image?.base64
+                                                            ? <Image source={{ uri: image.uri }} style={{ width: '100%', height: 196, borderRadius: 10 }}
+                                                                resizeMode={'cover'} />
+                                                            : <Image source={{ uri: `${baseWideUrl}/${foodEdit?.thumbnail}` }} style={{ width: '100%', height: 196, borderRadius: 10 }}
+                                                                resizeMode={'cover'} />)
                                                         : <Image source={require('../../../../assets/Plus.png')} />
                                                 }
                                             </View>
@@ -212,11 +329,11 @@ export default function FoodsScreen() {
                                 </View>
 
                                 <View style={{ ...styles.loginInputWrapper, marginTop: 10 }} >
-                                    <Input name='name' title='Meal name' control={control} rules={{ required: 'This is required' }} errors={errors} defaultValue={watch('name') || foodEdit.name} />
+                                    <Input name='name' title='Meal name' control={control} rules={{ required: 'This is required' }} errors={errors} defaultValue={foodEdit.name} onChangeText={(name) => handleNameChange(name)} />
                                 </View>
 
                                 <View style={{ ...styles.loginInputWrapper, marginTop: 10 }} >
-                                    <Input name='descript' title='Description' control={control} errors={errors} numberOfLines={5} inputStyle={{ height: 'auto' }} defaultValue={watch('descript') || foodEdit.description} />
+                                    <Input name='descript' title='Description' control={control} errors={errors} numberOfLines={5} inputStyle={{ height: 'auto' }} defaultValue={foodEdit.description} onChangeText={(des) => handleDescriptChange(des)} />
                                 </View>
                             </View>
 
@@ -239,7 +356,6 @@ export default function FoodsScreen() {
                                                     <View style={{ width: '100%', ...styles.middleRow, backgroundColor: 'white' }}>
 
                                                         <View
-
                                                             style={{ ...styles.itemContainer, flexDirection: 'row' }}
                                                         >
                                                             <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFEEDF', marginRight: 8, ...styles.middleCol }}>
@@ -280,7 +396,9 @@ export default function FoodsScreen() {
                                                             </View>
 
                                                             <View style={{ position: 'absolute', top: 0, right: 14, maxWidth: 50 }} >
-                                                                <Input name={ingredient._id} control={control} errors={errors} rules={{ required: 'enter' }} placeholder='gram' defaultValue={watch(ingredient._id) || ingredient.mass} keyboardType={'number-pad'} />
+                                                                <Input name={ingredient._id} control={control} errors={errors} rules={{ required: 'enter' }}
+                                                                    onChangeText={(mass) => handleMassChange(ingredient, mass)}
+                                                                    placeholder='gram' defaultValue={ingredient.mass} keyboardType={'number-pad'} />
                                                             </View>
                                                         </View>
                                                     </View>
@@ -310,7 +428,7 @@ export default function FoodsScreen() {
                                             height={40}
                                             borderRadius={12}
                                             fontSize={14}
-                                            onPress={() => setModalVisible(false)}
+                                            onPress={() => cancelUpdate()}
                                         />
                                     </View>
 
@@ -333,7 +451,7 @@ export default function FoodsScreen() {
                                     height={40}
                                     borderRadius={12}
                                     fontSize={14}
-                                    onPress={() => console.log('delete')}
+                                    onPress={() => handleFoodDelete()}
                                 />
 
                                 <CustomButton
@@ -361,7 +479,6 @@ export default function FoodsScreen() {
                             foods.map((food, idx) => (
                                 <TouchableHighlight
                                     key={idx}
-                                    onLongPress={() => handleChooseMode()}
                                     onPress={() => {
                                         handleItemChooseChange(idx)
                                         setChooseMode(false)
@@ -396,19 +513,19 @@ export default function FoodsScreen() {
                                                     <View style={{ ...styles.middleRow }}>
                                                         <View style={{ width: 100, }}>
                                                             <Text style={{ color: '#727272' }} >
-                                                                Protein: {food.protein}g
+                                                                Protein: {kFormatter(food.protein)}g
                                                             </Text>
                                                             <Text style={{ color: '#727272' }} >
-                                                                carb: {food.carb}g
+                                                                carb: {kFormatter(food.carb)}g
                                                             </Text>
                                                         </View>
 
                                                         <View>
                                                             <Text style={{ color: '#727272' }} >
-                                                                Fat: {food.fat}g
+                                                                Fat: {kFormatter(food.fat)}g
                                                             </Text>
                                                             <Text style={{ color: '#727272' }} >
-                                                                Calogies: {food.calories}cal
+                                                                Calogies: {kFormatter(food.calories)}cal
                                                             </Text>
                                                         </View>
                                                     </View>
@@ -457,7 +574,7 @@ export default function FoodsScreen() {
                                                                         height={30}
                                                                         borderRadius={12}
                                                                         fontSize={14}
-                                                                        onPress={() => console.log('add')}
+                                                                        onPress={() => handleAddFood(food)}
                                                                     />
                                                                 </View>
 
@@ -486,11 +603,11 @@ export default function FoodsScreen() {
                                                                         height={30}
                                                                         borderRadius={12}
                                                                         fontSize={14}
-                                                                        onPress={() => handleChooseMode()}
+                                                                        onPress={() => handleNoticeFoodDelete(food._id)}
                                                                     />
                                                                 </View>
 
-                                                                <View
+                                                                {/* <View
                                                                     style={{ flexGrow: 1, width: 'auto' }}
                                                                 >
 
@@ -503,7 +620,7 @@ export default function FoodsScreen() {
                                                                         fontSize={14}
                                                                         onPress={() => setModalVisible(true)}
                                                                     />
-                                                                </View>
+                                                                </View> */}
                                                             </View>
                                                         </View>
                                                     </View>

@@ -8,6 +8,9 @@ import Checkbox from 'expo-checkbox';
 import CustomButton from './../../../Components/CustomButton/CustomButton';
 import { Input } from '../../../Components/Input/Input';
 import { useForm } from "react-hook-form";
+import { updateFoods } from '../../../features/user/user';
+import { addFoods } from '../../../features/food/food';
+import { formatNumber } from '../../../utils/kFormatter';
 
 
 export default function IngredientsScreen({ navigation, route }) {
@@ -61,20 +64,21 @@ export default function IngredientsScreen({ navigation, route }) {
         ingredients.forEach((ingredient, idx) => {
             if (ingredient.isChoose) {
                 const newIngredient = {
-                    _ingerdientID: ingredient._id,
+                    _id: ingredient._id,
                     mass: watch(ingredient._id),
                 }
                 sendIngredients.push(newIngredient)
 
-                newFat += ingredient.fat
-                newCalo += ingredient.calories
-                newPro += ingredient.protein
-                newCarb += ingredient.carb
+                newFat += ingredient.fat * watch(ingredient._id)
+                newCalo += ingredient.calories * watch(ingredient._id)
+                newPro += ingredient.protein * watch(ingredient._id)
+                newCarb += ingredient.carb * watch(ingredient._id)
             }
         })
 
         const dataSend = {
             data: {
+                username: user.username,
                 name: data.name,
                 ingredients: sendIngredients,
                 carb: newCarb,
@@ -89,11 +93,20 @@ export default function IngredientsScreen({ navigation, route }) {
 
         try {
             axios.post(`${baseUrl}/api/foods`,
-                dataSend
-            ).then((response) => {
-                const resData = response.data
-                console.log(resData)
+                dataSend, {
+                params: {
+                    username: user.username,
+                }
             })
+                .then((response) => {
+                    const resData = response.data.message
+
+                    dispatch(addFoods(resData))
+                    setChooseMode(false)
+                    setModalVisible(false)
+                    navigation.navigate('FoodsScreen')
+
+                })
         } catch (error) {
             console.log(error)
         }
@@ -237,19 +250,19 @@ export default function IngredientsScreen({ navigation, route }) {
                                                                     <View style={{ ...styles.middleRow }}>
                                                                         <View style={{ width: 100, }}>
                                                                             <Text style={{ color: '#727272' }} >
-                                                                                Protein: {ingredient.protein}/g
+                                                                                Protein: {formatNumber(ingredient.protein, 2)}/g
                                                                             </Text>
                                                                             <Text style={{ color: '#727272' }} >
-                                                                                carb: {ingredient.carb}/g
+                                                                                carb: {formatNumber(ingredient.carb, 2)}/g
                                                                             </Text>
                                                                         </View>
 
                                                                         <View>
                                                                             <Text style={{ color: '#727272' }} >
-                                                                                Fat: {ingredient.fat}/g
+                                                                                Fat: {formatNumber(ingredient.fat, 2)}/g
                                                                             </Text>
                                                                             <Text style={{ color: '#727272' }} >
-                                                                                Calogies: {ingredient.calories}/g
+                                                                                Calogies: {formatNumber(ingredient.calories, 2)}/g
                                                                             </Text>
                                                                         </View>
                                                                     </View>
@@ -364,19 +377,19 @@ export default function IngredientsScreen({ navigation, route }) {
                                                 <View style={{ ...styles.middleRow }}>
                                                     <View style={{ width: 100, }}>
                                                         <Text style={{ color: '#727272' }} >
-                                                            Protein: {ingredient.protein}/g
+                                                            Protein: {formatNumber(ingredient.protein, 2)}/g
                                                         </Text>
                                                         <Text style={{ color: '#727272' }} >
-                                                            carb: {ingredient.carb}/g
+                                                            carb: {formatNumber(ingredient.carb, 2)}/g
                                                         </Text>
                                                     </View>
 
                                                     <View>
                                                         <Text style={{ color: '#727272' }} >
-                                                            Fat: {ingredient.fat}/g
+                                                            Fat: {formatNumber(ingredient.fat, 2)}/g
                                                         </Text>
                                                         <Text style={{ color: '#727272' }} >
-                                                            Calogies: {ingredient.calories}/g
+                                                            Calogies: {formatNumber(ingredient.calories, 2)}/g
                                                         </Text>
                                                     </View>
                                                 </View>

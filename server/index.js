@@ -7,6 +7,7 @@ import fileSystem from './routes/fileSystem.js'
 import user from './routes/user.js'
 import foodIngredient from './routes/foodIngredient.js'
 import food from './routes/food.js'
+import histories from './routes/histories.js'
 
 const app = express()
 const PORT =  5000
@@ -46,6 +47,9 @@ app.use('/api/ingredients', foodIngredient)
 
 //localhost:5000/api/foods
 app.use('/api/foods', food)
+
+//localhost:5000/api/histories
+app.use('/api/histories', histories)
 
 //localhost:5000/api/file-system
 app.use('/file', fileSystem)

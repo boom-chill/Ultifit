@@ -10,6 +10,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useForm } from "react-hook-form";
 import { baseWideUrl, baseUrl } from '../../../../constants/url';
 import axios from 'axios'
+import { deleteFoods } from '../../../features/food/food';
 
 export default function AccountScreen() {
     const dispatch = useDispatch()
@@ -70,6 +71,11 @@ export default function AccountScreen() {
             setImage(result);
         }
     };
+
+    const handleLogout = () => {
+        dispatch(deleteUser())
+        dispatch(deleteFoods())
+    }
 
     return (
         <SafeAreaView style={{ width: '100%', height: '100%', backgroundColor: 'white' }} >
@@ -154,7 +160,7 @@ export default function AccountScreen() {
                             title='Log out'
                             width={'80%'}
                             height={40}
-                            onPress={() => dispatch(deleteUser())}
+                            onPress={() => handleLogout()}
                             buttonStyle={{ borderColor: '#F17F76', borderWidth: 1, borderRadius: 10 }}
                             titleStyle={{ color: '#F17F76', fontSize: 16 }}
                         />

@@ -8,8 +8,7 @@ const FoodSchema = new Schema({
     },
     ingredients: [
         {
-            _id: false,
-            _ingerdientID: { // cái này chứa ObjectId của foodIngredientModel để link qua
+            _id: { // cái này chứa ObjectId của foodIngredientModel để link qua
                 type: Schema.ObjectId,
                 ref: 'foodigredients',
                 required: true,
