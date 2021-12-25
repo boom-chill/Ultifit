@@ -47,30 +47,6 @@ export const postLogin = async (req, res) => {
             }, process.env.ACCESS_TOKEN_SECRET, {
                 expiresIn: expAccessTime,
             })
-
-            //GET FOOD
-            let newFoodHistories = []
-            for (const foodHistory of existUser.histories.eaten) {
-            
-                let food = await foodModel.findOne(
-                    {_id: foodHistory._id}, 
-                    {createdAt: 0, updatedAt: 0, __v: 0, ingredients: 0, author: 0, description: 0}
-                )
-
-                const newFood = {
-                    ...food._doc,
-                    time: foodHistory.time
-                }
-
-                newFoodHistories.push(newFood)
-            }
-            
-            existUser = {
-                ...existUser._doc,
-                histories: {
-                    eaten: newFoodHistories,
-                }
-            }
     
             res.json({
                 message: {
@@ -96,6 +72,7 @@ export const postLogin = async (req, res) => {
 }
 
 export const postRegister = async (req, res) => {
+    console.log('post Register')
     try {
         const { username, password } = req.body
  
@@ -146,6 +123,7 @@ export const postRegister = async (req, res) => {
 }
 
 export const postRegisterInfo = async (req, res) => {
+    console.log('post RegisterInfo')
     try {
         let registerData = req.body
 

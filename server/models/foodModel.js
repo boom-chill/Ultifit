@@ -53,6 +53,11 @@ const FoodSchema = new Schema({
         required: true,
         default: 'anonymous' // username, admin
     },
+    hide: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
     type: {// để phân loại nếu có chức năng liên quan
         type: String,
         required: false,

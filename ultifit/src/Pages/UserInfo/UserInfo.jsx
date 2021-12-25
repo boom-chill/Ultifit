@@ -26,7 +26,6 @@ export default function UserInfo({ navigation, screenName }) {
                 username: user.username,
                 avatar: image?.base64 ?? null
             }
-            console.log('data', dataSend)
 
             try {
                 axios.post(`${baseUrl}/api/auth/register/user-info`,

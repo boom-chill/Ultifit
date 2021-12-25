@@ -7,7 +7,7 @@ import { TDEECal } from './../utils/calculator.js';
 import { v4 as uuidv4 } from 'uuid'
 
 export const patchUser = async (req, res) => {
-    console.log('enter patchUser')
+    console.log('Patch User')
     try {
         let data = req.body.data
 

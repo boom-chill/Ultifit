@@ -10,8 +10,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons'
 import { AntDesign } from '@expo/vector-icons'
 import { kFormatter } from '../../../utils/kFormatter';
-import { addUser, updateFoods, updateFoodsHistories } from '../../../features/user/user';
 import { addFoods } from '../../../features/food/food';
+import { addHistories } from '../../../features/histories/histories';
 
 export default function FoodsScreen() {
     const { handleSubmit, control, formState: { errors }, watch } = useForm();
@@ -243,23 +243,24 @@ export default function FoodsScreen() {
     const handleAddFood = (food) => {
 
         const dataSend = {
-            _id: food._id,
+            _foodID: food._id,
             time: Date.now(),
+            type: 'food',
+            author: user.username,
         }
 
         try {
-            axios.post(`${baseUrl}/api/histories`,
-                dataSend,
-                {
-                    params: {
-                        username: user.username
-                    }
-                })
+            axios.post(`${baseUrl}/api/histories`, dataSend, {
+                params: {
+                    username: user.username,
+                }
+            })
                 .then((response) => {
                     const error = response.data?.error
                     if (!error) {
                         const resData = response.data.message
-                        dispatch(updateFoodsHistories(resData))
+                        console.log("🚀 ~ file: FoodsScreen.jsx ~ line 258 ~ .then ~ resData", resData)
+                        dispatch(addHistories(resData))
                     } else {
 
                     }

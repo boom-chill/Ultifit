@@ -42,14 +42,14 @@ export default function Register({ navigation }) {
                             setError(resData.message)
                         } else {
                             setError(null)
+                            dispatch(registerUser({
+                                username: username,
+                            }))
+
+                            navigation.navigate('UserInfo')
                         }
                     })
 
-                    dispatch(registerUser({
-                        username: username,
-                    }))
-
-                    navigation.navigate('UserInfo')
                 } catch (error) {
                     console.log('error', error)
                 }

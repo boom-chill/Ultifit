@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import stream from 'stream'
 
 export const getFile = async (req, res) => {
-    console.log('enter')
+    console.log('get File')
     try {
         const path = req._parsedUrl.pathname
         const r = fs.createReadStream(`public/${path}`) // or any other way to get a readable stream

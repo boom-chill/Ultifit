@@ -62,7 +62,7 @@ export const postFood = async (req, res) => {
 
             data = {
                 ...data,
-                thumbnail: `file/foods/${data.name}-${imgId}-img.jpeg`
+                thumbnail: `file/foods/${encodeURI(data.name)}-${imgId}-img.jpeg`
             }
         } else {
             data = {
@@ -81,7 +81,7 @@ export const postFood = async (req, res) => {
         let newFoods = []
         
         let foods = await foodModel.find(
-            {author: username}, 
+            {author: username, hide: false}, 
             {createAt: 0, updateAt: 0, __v: 0
         })
         
@@ -131,7 +131,7 @@ export const getFood = async (req, res) => {
         let newFoods = []
         
         let foods = await foodModel.find(
-            {author: username}, 
+            {author: username, hide: false},  
             {createAt: 0, updateAt: 0, __v: 0
         })
         
@@ -187,13 +187,13 @@ export const patchFood = async (req, res) => {
         if( newImg ) {
             const binaryData = new Buffer(newImg, 'base64')
 
-            fs.writeFileSync(`public/foods/${data.name}-${imgId}-img.jpeg`, binaryData, "binary", function(err) {
+            fs.writeFileSync(`public/foods/${encodeURI(data.name)}-${imgId}-img.jpeg`, binaryData, "binary", function(err) {
                 console.log(err);
             });
 
             data = {
                 ...data,
-                thumbnail: `file/foods/${data.name}-${imgId}-img.jpeg`
+                thumbnail: `file/foods/${encodeURI(data.name)}-${imgId}-img.jpeg`
             }
         }
 
@@ -206,7 +206,7 @@ export const patchFood = async (req, res) => {
         let newFoods = []
         
         let foods = await foodModel.find(
-            {author: username}, 
+            {author: username, hide: false}, 
             {createAt: 0, updateAt: 0, __v: 0
         })
         
@@ -257,13 +257,15 @@ export const deleteFood = async (req, res) => {
     try {
 
         //DELETE
-        await foodModel.findOneAndDelete({_id: id})
+        await foodModel.findOneAndUpdate({_id: id}, {
+            hide: true,
+        })
 
         //GET FOOD
         let newFoods = []
         
         let foods = await foodModel.find(
-            {author: username}, 
+            {author: username, hide: false}, 
             {createAt: 0, updateAt: 0, __v: 0
         })
         

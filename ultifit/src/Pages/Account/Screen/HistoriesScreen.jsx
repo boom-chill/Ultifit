@@ -1,5 +1,5 @@
 import axios from 'axios'
-import React from 'react'
+import React, { useState } from 'react'
 import { baseWideUrl, baseUrl } from '../../../../constants/url';
 import { useSelector, useDispatch } from 'react-redux';
 import CustomButton from './../../../Components/CustomButton/CustomButton';
@@ -12,21 +12,28 @@ import { AntDesign } from '@expo/vector-icons'
 import { kFormatter } from '../../../utils/kFormatter';
 import { convertTZ } from '../../../utils/convertTZ';
 import { updateFoodsHistories } from '../../../features/user/user';
+import { addHistories } from '../../../features/histories/histories';
+import { DateTimePickerModal } from 'react-native-modal-datetime-picker';
 
 
 
 export default function HistoriesScreen() {
     const user = useSelector((state) => state.user.user)
-    const histories = useSelector((state) => state.user.user.histories)
+    const histories = useSelector((state) => state.history.histories)
+    // const [histories, setHistories] = useState([])
 
     const dispatch = useDispatch()
 
     const [chooseMode, setChooseMode] = React.useState(false)
 
-    const [timeDelete, setTimeDelete] = React.useState('')
+    const [historiesDelete, setHistoriesDelete] = React.useState('')
 
-    const [foodEdit, setFoodEdit] = React.useState({
-        ingredients: []
+    const [date, setDate] = React.useState(new Date)
+    const [isDatePickerVisible, setDatePickerVisibility] = React.useState(false);
+
+    const [historyEdit, setHistoryEdit] = React.useState({
+        time: '',
+        id: '',
     })
 
     const handleChooseMode = () => {
@@ -34,19 +41,19 @@ export default function HistoriesScreen() {
     }
 
     const handleItemChooseChange = (idx) => {
-        let newFoods = [...histories.eaten]
+        let newFoods = [...histories]
 
         newFoods[idx] = {
             ...newFoods[idx],
             isChoose: !newFoods[idx]?.isChoose ?? true
         }
 
-        dispatch(updateFoodsHistories(newFoods))
+        dispatch(addHistories(newFoods))
     }
 
-    const handleFoodDelete = () => {
+    React.useEffect(() => {
         try {
-            axios.delete(`${baseUrl}/api/histories/${timeDelete}`, {
+            axios.get(`${baseUrl}/api/histories`, {
                 params: {
                     username: user.username
                 }
@@ -55,9 +62,30 @@ export default function HistoriesScreen() {
                     const error = response.data?.error
                     if (!error) {
                         const resData = response.data.message
-                        console.log("🚀 ~ file: HistoriesScreen.jsx ~ line 58 ~ .then ~ resData", resData)
+                        dispatch(addHistories(resData))
+                    } else {
 
+                    }
+                })
+        } catch (error) {
 
+        }
+    }, [])
+
+    const handleUpdateHistories = (history, time) => {
+        try {
+            axios.patch(`${baseUrl}/api/histories/${history._id}`, {
+                time: time
+            }, {
+                params: {
+                    username: user.username
+                }
+            })
+                .then((response) => {
+                    const error = response.data?.error
+                    if (!error) {
+                        const resData = response.data.message
+                        dispatch(addHistories(resData))
                         setChooseMode(false)
                     } else {
 
@@ -68,11 +96,66 @@ export default function HistoriesScreen() {
         }
     }
 
-    const handleNoticeFoodDelete = (food) => {
-        setTimeDelete(food.time)
+    const handleHistoryDelete = () => {
+        try {
+            axios.delete(`${baseUrl}/api/histories/${historiesDelete}`, {
+                params: {
+                    username: user.username
+                }
+            })
+                .then((response) => {
+                    const error = response.data?.error
+                    if (!error) {
+                        const resData = response.data.message
+                        dispatch(addHistories(resData))
+                        setChooseMode(false)
+                    } else {
+
+                    }
+                })
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const handleHistoryEdit = (time, history) => {
+        console.log(time, history._id)
+        try {
+            axios.patch(`${baseUrl}/api/histories/${history._id}`, {
+                time: time
+            }, {
+                params: {
+                    username: user.username
+                }
+            })
+                .then((response) => {
+                    const error = response.data?.error
+                    if (!error) {
+                        const resData = response.data.message
+                        dispatch(addHistories(resData))
+                        setChooseMode(false)
+                        hideDatePicker()
+                    } else {
+
+                    }
+                })
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const handleNoticeHistoryDelete = (food) => {
+        setHistoriesDelete(food._id)
         setChooseMode(true)
     }
 
+    const showDatePicker = () => {
+        setDatePickerVisibility(true);
+    };
+
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false);
+    };
 
 
     return (
@@ -90,7 +173,7 @@ export default function HistoriesScreen() {
                                     height={40}
                                     borderRadius={12}
                                     fontSize={14}
-                                    onPress={() => handleFoodDelete()}
+                                    onPress={() => handleHistoryDelete()}
                                 />
 
                                 <CustomButton
@@ -115,7 +198,7 @@ export default function HistoriesScreen() {
                     <View style={{ ...styles.container }}>
 
                         {
-                            histories.eaten.map((food, idx) => (
+                            histories.map((food, idx) => (
                                 <TouchableHighlight
                                     key={idx}
                                     onPress={() => {
@@ -197,6 +280,14 @@ export default function HistoriesScreen() {
                                                                 <View
                                                                     style={{ flexGrow: 1, width: 'auto' }}
                                                                 >
+                                                                    <DateTimePickerModal
+                                                                        date={new Date(food.time)}
+                                                                        isVisible={isDatePickerVisible}
+                                                                        mode="datetime"
+                                                                        onConfirm={(val) => handleHistoryEdit(val, food)}
+                                                                        onCancel={hideDatePicker}
+                                                                        modalStyleIOS={{ color: '#C4E8FF' }}
+                                                                    />
 
                                                                     <CustomButton
                                                                         title='Edit'
@@ -205,7 +296,7 @@ export default function HistoriesScreen() {
                                                                         height={30}
                                                                         borderRadius={12}
                                                                         fontSize={14}
-                                                                        onPress={() => console.log('edit')}
+                                                                        onPress={() => showDatePicker()}
                                                                     />
                                                                 </View>
 
@@ -219,7 +310,7 @@ export default function HistoriesScreen() {
                                                                         height={30}
                                                                         borderRadius={12}
                                                                         fontSize={14}
-                                                                        onPress={() => handleNoticeFoodDelete(food)}
+                                                                        onPress={() => handleNoticeHistoryDelete(food)}
                                                                     />
                                                                 </View>
                                                             </View>
