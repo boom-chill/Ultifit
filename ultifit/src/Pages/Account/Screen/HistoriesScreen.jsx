@@ -20,7 +20,6 @@ import { DateTimePickerModal } from 'react-native-modal-datetime-picker';
 export default function HistoriesScreen() {
     const user = useSelector((state) => state.user.user)
     const histories = useSelector((state) => state.history.histories)
-    // const [histories, setHistories] = useState([])
 
     const dispatch = useDispatch()
 
@@ -28,13 +27,7 @@ export default function HistoriesScreen() {
 
     const [historiesDelete, setHistoriesDelete] = React.useState('')
 
-    const [date, setDate] = React.useState(new Date)
     const [isDatePickerVisible, setDatePickerVisibility] = React.useState(false);
-
-    const [historyEdit, setHistoryEdit] = React.useState({
-        time: '',
-        id: '',
-    })
 
     const handleChooseMode = () => {
         setChooseMode(!chooseMode)
@@ -119,7 +112,6 @@ export default function HistoriesScreen() {
     }
 
     const handleHistoryEdit = (time, history) => {
-        console.log(time, history._id)
         try {
             axios.patch(`${baseUrl}/api/histories/${history._id}`, {
                 time: time
@@ -144,8 +136,8 @@ export default function HistoriesScreen() {
         }
     }
 
-    const handleNoticeHistoryDelete = (food) => {
-        setHistoriesDelete(food._id)
+    const handleNoticeHistoryDelete = (history) => {
+        setHistoriesDelete(history._id)
         setChooseMode(true)
     }
 
@@ -198,7 +190,7 @@ export default function HistoriesScreen() {
                     <View style={{ ...styles.container }}>
 
                         {
-                            histories.map((food, idx) => (
+                            histories.map((history, idx) => (
                                 <TouchableHighlight
                                     key={idx}
                                     onPress={() => {
@@ -211,23 +203,23 @@ export default function HistoriesScreen() {
                                     <View style={{ width: '100%', ...styles.middleRow, backgroundColor: 'white' }}>
 
                                         <View
-                                            style={{ ...styles.itemContainer, ...(food.isChoose ? { height: 140 } : { height: 90 }) }}
+                                            style={{ ...styles.itemContainer, ...(history.isChoose ? { height: 140 } : { height: 90 }) }}
                                         >
                                             <View
                                                 style={{ ...styles.itemFrontContainer }}
                                             >
                                                 <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#C4C4C4', marginRight: 8, ...styles.middleCol }}>
                                                     <Image
-                                                        source={{ uri: `${baseWideUrl}/${food?.thumbnail ? food.thumbnail : 'file/foods/dinner-temp.png'}` }}
-                                                        style={food?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
+                                                        source={{ uri: `${baseWideUrl}/${history?.thumbnail ? history.thumbnail : 'file/foods/dinner-temp.png'}` }}
+                                                        style={history?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
                                                     />
                                                 </View>
 
                                                 <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
                                                     <View>
-                                                        <Text style={{ fontSize: 22, fontWeight: '600' }}>
+                                                        <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='end'>
                                                             {
-                                                                food.name
+                                                                history.name
                                                             }
                                                         </Text>
                                                     </View>
@@ -235,19 +227,19 @@ export default function HistoriesScreen() {
                                                     <View style={{ ...styles.middleRow }}>
                                                         <View style={{ width: 100, }}>
                                                             <Text style={{ color: '#727272' }} >
-                                                                Protein: {kFormatter(food.protein)}g
+                                                                Protein: {kFormatter(history.protein)}g
                                                             </Text>
                                                             <Text style={{ color: '#727272' }} >
-                                                                carb: {kFormatter(food.carb)}g
+                                                                carb: {kFormatter(history.carb)}g
                                                             </Text>
                                                         </View>
 
                                                         <View>
                                                             <Text style={{ color: '#727272' }} >
-                                                                Fat: {kFormatter(food.fat)}g
+                                                                Fat: {kFormatter(history.fat)}g
                                                             </Text>
                                                             <Text style={{ color: '#727272' }} >
-                                                                Calogies: {kFormatter(food.calories)}cal
+                                                                Calogies: {kFormatter(history.calories)}cal
                                                             </Text>
                                                         </View>
                                                     </View>
@@ -257,7 +249,7 @@ export default function HistoriesScreen() {
                                                 <View style={{ position: 'absolute', top: -9, right: -3 }} >
                                                     <Text style={{ fontSize: 12, color: '#727272' }}>
                                                         {
-                                                            convertTZ(food.time, "Asia/Jakarta")
+                                                            convertTZ(history.time, "Asia/Jakarta")
                                                         }
                                                     </Text>
                                                 </View>
@@ -266,7 +258,7 @@ export default function HistoriesScreen() {
                                             </View>
 
                                             {
-                                                food?.isChoose
+                                                history?.isChoose
                                                     ? <View style={{ borderTopWidth: 1, width: '100%', marginTop: 9, borderTopColor: '#C4C4C4' }}>
                                                         <ScrollView
                                                             horizontal={true}
@@ -281,10 +273,10 @@ export default function HistoriesScreen() {
                                                                     style={{ flexGrow: 1, width: 'auto' }}
                                                                 >
                                                                     <DateTimePickerModal
-                                                                        date={new Date(food.time)}
+                                                                        date={new Date(history.time)}
                                                                         isVisible={isDatePickerVisible}
                                                                         mode="datetime"
-                                                                        onConfirm={(val) => handleHistoryEdit(val, food)}
+                                                                        onConfirm={(val) => handleHistoryEdit(val, history)}
                                                                         onCancel={hideDatePicker}
                                                                         modalStyleIOS={{ color: '#C4E8FF' }}
                                                                     />
@@ -310,7 +302,7 @@ export default function HistoriesScreen() {
                                                                         height={30}
                                                                         borderRadius={12}
                                                                         fontSize={14}
-                                                                        onPress={() => handleNoticeHistoryDelete(food)}
+                                                                        onPress={() => handleNoticeHistoryDelete(history)}
                                                                     />
                                                                 </View>
                                                             </View>

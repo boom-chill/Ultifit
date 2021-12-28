@@ -316,7 +316,7 @@ export default function IngredientsScreen({ navigation, route }) {
                         ? <View style={{ ...styles.chooseButtonWrapper }}>
                             <View style={{ ...styles.middleRow, justifyContent: 'space-around', width: '100%' }}>
                                 <CustomButton
-                                    title='Create Meal'
+                                    title='Create Food'
                                     buttonColor='purple'
                                     width={'45%'}
                                     height={40}
@@ -367,7 +367,7 @@ export default function IngredientsScreen({ navigation, route }) {
 
                                             <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
                                                 <View>
-                                                    <Text style={{ fontSize: 22, fontWeight: '600' }}>
+                                                    <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='end'>
                                                         {
                                                             ingredient.name
                                                         }

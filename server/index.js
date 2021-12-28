@@ -7,6 +7,8 @@ import fileSystem from './routes/fileSystem.js'
 import user from './routes/user.js'
 import foodIngredient from './routes/foodIngredient.js'
 import food from './routes/food.js'
+import exercise from './routes/exercise.js'
+import session from './routes/session.js'
 import histories from './routes/histories.js'
 
 const app = express()
@@ -47,6 +49,12 @@ app.use('/api/ingredients', foodIngredient)
 
 //localhost:5000/api/foods
 app.use('/api/foods', food)
+
+//localhost:5000/api/exercises
+app.use('/api/exercises', exercise)
+
+//localhost:5000/api/sessions
+app.use('/api/sessions', session)
 
 //localhost:5000/api/histories
 app.use('/api/histories', histories)

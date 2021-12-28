@@ -13,7 +13,7 @@ import { kFormatter } from '../../../utils/kFormatter';
 import { addFoods } from '../../../features/food/food';
 import { addHistories } from '../../../features/histories/histories';
 
-export default function FoodsScreen() {
+export default function SessionScreen() {
     const { handleSubmit, control, formState: { errors }, watch } = useForm();
     const dispatch = useDispatch()
 
@@ -502,7 +502,7 @@ export default function FoodsScreen() {
 
                                                 <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
                                                     <View>
-                                                        <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='end'>
+                                                        <Text style={{ fontSize: 22, fontWeight: '600' }}>
                                                             {
                                                                 food.name
                                                             }
@@ -627,6 +627,7 @@ export default function FoodsScreen() {
                                                 </View>
                                                 : <View></View>
                                         }
+
 
                                     </View>
                                 </View>

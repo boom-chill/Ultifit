@@ -2,11 +2,11 @@ import React from 'react';
 import { Text, View, Button, StyleSheet } from 'react-native'
 import { useDispatch } from 'react-redux';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
-import FoodsScreen from './Screen/FoodsScreen';
-import IngredientsScreen from './Screen/IngredientsScreen';
+import SessionsScreen from './Screen/SessionsScreen';
+import ExercisesScreen from './Screen/ExercisesScreen';
 
 
-function Food({ navigation, route }) {
+function Session({ navigation, route }) {
 
     const TopTab = createMaterialTopTabNavigator()
     return (
@@ -21,12 +21,13 @@ function Food({ navigation, route }) {
         //swipeEnabled={false}
         >
             <TopTab.Group>
-                <TopTab.Screen name="FoodsScreen" component={FoodsScreen} options={{ title: 'Foods' }} />
-                <TopTab.Screen name="IngredientsScreen" component={IngredientsScreen} options={{ title: 'Ingredients' }} />
+                <TopTab.Screen name="SessionsScreen" component={SessionsScreen} options={{ title: 'Sessions' }} />
+                <TopTab.Screen name="ExercisesScreen" component={ExercisesScreen} options={{ title: 'Exercises' }} />
             </TopTab.Group>
         </TopTab.Navigator >
 
     );
 }
 
-export default Food;
+export default Session;
+

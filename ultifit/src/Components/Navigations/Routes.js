@@ -11,7 +11,7 @@ import Login from './../../Pages/Login/Login';
 import Register from './../../Pages/Register/Register';
 
 import Home from './../../Pages/Home/Home';
-import Exercise from './../../Pages/Exercise/Exercise';
+import Session from './../../Pages/Exercise/Session';
 import Food from './../../Pages/Food/Food';
 import Account from './../../Pages/Account/Account';
 import Summary from './../../Pages/Summary/Summary';
@@ -102,7 +102,7 @@ export default function Routes() {
             
               <Tab.Screen name="Home" component={Home}  />
               <Tab.Screen name="Summary" component={Summary} />
-              <Tab.Screen name="Exercise" component={Exercise} />
+              <Tab.Screen name="Exercise" component={Session} />
               <Tab.Screen name="Food" component={Food} />
               <Tab.Screen name="Account" component={Account} options={{title: user.name}} />
 

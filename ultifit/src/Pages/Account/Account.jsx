@@ -3,8 +3,6 @@ import { Text, View, Button, StyleSheet } from 'react-native'
 import { useDispatch } from 'react-redux';
 import { addUser, deleteUser } from '../../features/user/user'
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
-import Exercise from './../Exercise/Exercise';
-import Home from '../Home/Home';
 import AccountScreen from './Screen/AccountScreen';
 import FriendsScreen from './Screen/FriendsScreen';
 import HistoriesScreen from './Screen/HistoriesScreen';

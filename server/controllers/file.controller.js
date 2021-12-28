@@ -1,14 +1,16 @@
 import * as fs from 'fs';
 import stream from 'stream'
+import sharp from 'sharp';
 
 export const getFile = async (req, res) => {
-    console.log('get File')
     try {
         const path = req._parsedUrl.pathname
-        const r = fs.createReadStream(`public/${path}`) // or any other way to get a readable stream
+        const fileRead = fs.createReadStream(`public/${path}`) // or any other way to get a readable stream
         const ps = new stream.PassThrough() // <---- this makes a trick with stream error handling
+        let transform = sharp()
+        //transform.resize(512, 512)
         stream.pipeline(
-        r,
+            fileRead,
         ps, // <---- this makes a trick with stream error handling
         (err) => {
             if (err) {
@@ -16,7 +18,9 @@ export const getFile = async (req, res) => {
             return res.sendStatus(400); 
             }
         })
+        //fileRead.pipe(transform).pipe(res)
         ps.pipe(res) // <---- this makes a trick with stream error handling
+
     } catch (error) {
         console.log(error)
         return res.json({

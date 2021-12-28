@@ -12,13 +12,15 @@ import { AntDesign } from '@expo/vector-icons'
 import { kFormatter } from '../../../utils/kFormatter';
 import { addFoods } from '../../../features/food/food';
 import { addHistories } from '../../../features/histories/histories';
-
-export default function FoodsScreen() {
+import { Video, AVPlaybackStatus } from 'expo-av';
+import Checkbox from 'expo-checkbox';
+export default function ExercisesScreen() {
+    const video = React.useRef(null);
+    const [status, setStatus] = React.useState({});
     const { handleSubmit, control, formState: { errors }, watch } = useForm();
     const dispatch = useDispatch()
 
     const user = useSelector((state) => state.user.user)
-    const userFoods = useSelector((state) => state.food.foods)
 
     const [chooseMode, setChooseMode] = React.useState(false)
 
@@ -37,7 +39,7 @@ export default function FoodsScreen() {
 
     React.useEffect(() => {
 
-        axios.get(`${baseUrl}/api/foods`, {
+        axios.get(`${baseUrl}/api/exercises`, {
             params: {
                 username: user.username,
             }
@@ -47,8 +49,6 @@ export default function FoodsScreen() {
                 if (!error) {
                     const resData = response.data.message
 
-                    dispatch(addFoods(resData))
-
                     const foods = AddIsChoose(resData)
                     setFoods(foods)
                 } else {
@@ -57,11 +57,6 @@ export default function FoodsScreen() {
             })
     }, [])
 
-    React.useEffect(() => {
-        const foods = AddIsChoose(userFoods)
-        setFoods(foods)
-    }, [userFoods])
-
     const AddIsChoose = (foods) => {
         let newFoods = []
 
@@ -69,6 +64,7 @@ export default function FoodsScreen() {
             const newFood = {
                 ...food,
                 isChoose: false,
+                isOpen: false,
             }
 
             newFoods.push(newFood)
@@ -106,7 +102,7 @@ export default function FoodsScreen() {
         }
 
         try {
-            axios.patch(`${baseUrl}/api/foods`,
+            axios.patch(`${baseUrl}/api/exercises`,
                 dataSend, {
                 params: {
                     username: user.username,
@@ -217,6 +213,17 @@ export default function FoodsScreen() {
         setFoods(newFoods)
     }
 
+    const handleItemOpenChange = (idx) => {
+        let newFoods = [...foods]
+
+        newFoods[idx] = {
+            ...newFoods[idx],
+            isOpen: !newFoods[idx].isOpen
+        }
+
+        setFoods(newFoods)
+    }
+
     const handleFoodDelete = () => {
         try {
             axios.delete(`${baseUrl}/api/foods/${foodDelete}`, {
@@ -269,14 +276,10 @@ export default function FoodsScreen() {
         }
     }
 
-    const handleNoticeFoodDelete = (id) => {
-        setFoodDelete(id)
-        setChooseMode(true)
-    }
-
 
     return (
         <View style={{ width: '100%' }}>
+
             <View>
                 <Modal
                     animationType="slide"
@@ -445,18 +448,18 @@ export default function FoodsScreen() {
                         ? <View style={{ ...styles.chooseButtonWrapper }}>
                             <View style={{ ...styles.middleRow, justifyContent: 'space-around', width: '100%' }}>
                                 <CustomButton
-                                    title='Delete'
-                                    buttonColor='red'
+                                    title='Create Session'
+                                    buttonColor='purple'
                                     width={'45%'}
                                     height={40}
                                     borderRadius={12}
                                     fontSize={14}
-                                    onPress={() => handleFoodDelete()}
+                                    onPress={() => console.log('Create Session')}
                                 />
 
                                 <CustomButton
                                     title='Cancel'
-                                    buttonColor='gray'
+                                    buttonColor='red'
                                     width={'45%'}
                                     height={40}
                                     borderRadius={12}
@@ -479,13 +482,12 @@ export default function FoodsScreen() {
                             foods.map((food, idx) => (
                                 <View style={{ width: '100%', ...styles.middleRow, backgroundColor: 'white' }} key={idx} >
                                     <View
-                                        style={{ ...styles.itemContainer, ...(food.isChoose ? { height: 180 } : { height: 90 }) }}
+                                        style={{ ...styles.itemContainer, ...(food.isOpen ? { height: 310 } : { height: 90 }) }}
                                     >
                                         <TouchableHighlight
-
+                                            onLongPress={() => handleChooseMode()}
                                             onPress={() => {
-                                                handleItemChooseChange(idx)
-                                                setChooseMode(false)
+                                                handleItemOpenChange(idx)
                                             }}
                                             style={{ width: '100%', ...styles.middleCol, backgroundColor: 'white' }}
                                             underlayColor='white'
@@ -493,9 +495,9 @@ export default function FoodsScreen() {
                                             <View
                                                 style={{ ...styles.itemFrontContainer }}
                                             >
-                                                <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#C4C4C4', marginRight: 8, ...styles.middleCol }}>
+                                                <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFF3E9', marginRight: 8, ...styles.middleCol }}>
                                                     <Image
-                                                        source={{ uri: `${baseWideUrl}/${food?.thumbnail ? food.thumbnail : 'file/foods/dinner-temp.png'}` }}
+                                                        source={{ uri: `${baseWideUrl}/${food?.thumbnail ? food.thumbnail : 'file/exercises/exercise-temp.png'}` }}
                                                         style={food?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
                                                     />
                                                 </View>
@@ -529,99 +531,53 @@ export default function FoodsScreen() {
                                                         </View>
                                                     </View>
 
+                                                    {/* <View style={chooseMode ? { position: 'absolute', top: 33, right: 14, opacity: 100 } : { opacity: 0 }}>
+                                                        <Checkbox
+                                                            style={{ height: 24, width: 24, borderRadius: 5 }}
+                                                            value={food.isChoose}
+                                                            onValueChange={() => handleItemChooseChange(idx)}
+                                                            color={food.isChoose ? '#45D04C' : '#C4C4C4'}
+                                                        />
+                                                    </View> */}
 
                                                 </View>
-                                                <View style={{ position: 'absolute', top: 25, right: 10, maxWidth: 50 }} >
-                                                    <AntDesign name={food.isChoose ? "down" : 'right'} size={24} color='#C4C4C4' />
+                                                <View style={{ position: 'absolute', top: 25, right: 10, maxWidth: 50, ...(!chooseMode ? { right: 10 } : { right: 5 }) }} >
+                                                    {
+                                                        chooseMode
+                                                            ? <Checkbox
+                                                                style={{ height: 24, width: 24, borderRadius: 5 }}
+                                                                value={food?.isChoose}
+                                                                onValueChange={() => handleItemChooseChange(idx)}
+                                                                color={food?.isChoose ? '#45D04C' : '#C4C4C4'} />
+                                                            :
+                                                            <AntDesign name={food.isOpen ? "down" : 'right'} size={24} color='#C4C4C4' />
+                                                    }
                                                 </View>
+
+
 
                                             </View>
                                         </TouchableHighlight>
 
+
+
                                         {
-                                            food.isChoose
+                                            food.isOpen
                                                 ? <View style={{ borderTopWidth: 1, width: '100%', marginTop: 9, borderTopColor: '#C4C4C4' }}>
-                                                    <ScrollView
-                                                        horizontal={true}
-                                                        style={{ marginTop: 10 }}
-                                                    >
-                                                        <View style={{ ...styles.middleRow, zIndex: 100 }}>
-                                                            {
-                                                                food.ingredients.map((ingredient, idx) => (
-                                                                    <View style={{ ...styles.middleRow, width: 'auto', heigh: 30, backgroundColor: '#E9E9E9', borderRadius: 12, marginRight: 8 }}
-                                                                        key={idx}
-                                                                    >
-                                                                        <Text style={{ paddingRight: 10, paddingLeft: 10, paddingBottom: 4, paddingTop: 4, }}>
-                                                                            {
-                                                                                ingredient.name
-                                                                            }
-                                                                        </Text>
-                                                                    </View>
-                                                                ))
-                                                            }
-                                                        </View>
-                                                    </ScrollView>
 
-                                                    <View style={{ display: 'flex', flexDirection: 'row', marginTop: 10 }}>
-                                                        <View style={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
-                                                            <View
-                                                                style={{ flexGrow: 1, width: 'auto' }}
-                                                            >
-
-                                                                <CustomButton
-                                                                    title='Add'
-                                                                    buttonColor='purple'
-                                                                    width={90}
-                                                                    height={30}
-                                                                    borderRadius={12}
-                                                                    fontSize={14}
-                                                                    onPress={() => handleAddFood(food)}
-                                                                />
-                                                            </View>
-
-                                                            <View
-                                                                style={{ flexGrow: 1, width: 'auto' }}
-                                                            >
-
-                                                                <CustomButton
-                                                                    title='Edit'
-                                                                    buttonColor='blue'
-                                                                    width={90}
-                                                                    height={30}
-                                                                    borderRadius={12}
-                                                                    fontSize={14}
-                                                                    onPress={() => editFood(food)}
-                                                                />
-                                                            </View>
-
-                                                            <View
-                                                                style={{ flexGrow: 1, width: 'auto' }}
-                                                            >
-                                                                <CustomButton
-                                                                    title='Delete'
-                                                                    buttonColor='red'
-                                                                    width={90}
-                                                                    height={30}
-                                                                    borderRadius={12}
-                                                                    fontSize={14}
-                                                                    onPress={() => handleNoticeFoodDelete(food._id)}
-                                                                />
-                                                            </View>
-
-                                                            {/* <View
-                                                                    style={{ flexGrow: 1, width: 'auto' }}
-                                                                >
-
-                                                                    <CustomButton
-                                                                        title='i'
-                                                                        buttonColor='gray'
-                                                                        width={30}
-                                                                        height={30}
-                                                                        borderRadius={30}
-                                                                        fontSize={14}
-                                                                        onPress={() => setModalVisible(true)}
-                                                                    />
-                                                                </View> */}
+                                                    <View style={{ ...styles.middleRow, zIndex: 100, height: 210 }}>
+                                                        <View style={styles.container}>
+                                                            <Video
+                                                                style={{ width: '98%', height: '100%', borderRadius: 10 }}
+                                                                source={{
+                                                                    uri: `${baseUrl}/${food.video}`,
+                                                                }}
+                                                                ratio={16 / 9}
+                                                                resizeMode="contain"
+                                                                isLooping
+                                                                isMuted={true}
+                                                                shouldPlay
+                                                            />
                                                         </View>
                                                     </View>
                                                 </View>

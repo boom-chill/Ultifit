@@ -28,7 +28,6 @@ export default function AccountScreen() {
                 data: { ...data },
                 newAvatar: (image?.base64 ?? null)
             }
-            console.log('data', dataSend)
 
             try {
                 axios.patch(`${baseUrl}/api/users/${user.username}`,
