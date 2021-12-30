@@ -367,7 +367,7 @@ export default function IngredientsScreen({ navigation, route }) {
 
                                             <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
                                                 <View>
-                                                    <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='end'>
+                                                    <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='tail'>
                                                         {
                                                             ingredient.name
                                                         }

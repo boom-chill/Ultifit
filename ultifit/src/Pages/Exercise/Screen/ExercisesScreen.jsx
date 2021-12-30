@@ -14,7 +14,11 @@ import { addFoods } from '../../../features/food/food';
 import { addHistories } from '../../../features/histories/histories';
 import { Video, AVPlaybackStatus } from 'expo-av';
 import Checkbox from 'expo-checkbox';
-export default function ExercisesScreen() {
+import { calCaloriesBurn } from './../../../utils/calCaloriesBurn';
+import { addSessions } from '../../../features/session/session';
+
+
+export default function ExercisesScreen({ navigation }) {
     const video = React.useRef(null);
     const [status, setStatus] = React.useState({});
     const { handleSubmit, control, formState: { errors }, watch } = useForm();
@@ -55,7 +59,7 @@ export default function ExercisesScreen() {
 
                 }
             })
-    }, [])
+    }, [user])
 
     const AddIsChoose = (foods) => {
         let newFoods = []
@@ -75,50 +79,53 @@ export default function ExercisesScreen() {
 
     const onSubmit = (data) => {
 
-        let newFat = 0
-        let newCalo = 0
-        let newPro = 0
-        let newCarb = 0
+        let totalCal = 0
+        const restTime = Number(data.restTime)
+        const practiceTime = Number(data.practiceTime)
 
-        foodEdit.ingredients.forEach((ingredient, idx) => {
-            newFat += ingredient.fat * ingredient.mass
-            newCalo += ingredient.calories * ingredient.mass
-            newPro += ingredient.protein * ingredient.mass
-            newCarb += ingredient.carb * ingredient.mass
+        let sendExercises = []
+        foods.forEach((exercise, idx) => {
+            if (exercise.isChoose) {
+                const newIngredient = {
+                    _id: exercise._id,
+                }
+                sendExercises.push(newIngredient)
 
+                totalCal += practiceTime * (calCaloriesBurn(exercise.MET, user.weight) / 60)
+            }
         })
 
-        let newFoodEdit = {
-            ...foodEdit,
-            fat: newFat,
-            calories: newCalo,
-            protein: newPro,
-            carb: newCarb,
-        }
+        let totalTime = (restTime + practiceTime) * sendExercises.length
 
         const dataSend = {
-            data: newFoodEdit,
+            data: {
+                name: data.name,
+                description: data.description,
+                exercises: sendExercises,
+                caloriesBurn: totalCal,
+                practiceTime: practiceTime,
+                restTime: restTime,
+                totalTime: totalTime,
+                author: user.username
+            },
             img: image.base64 ?? null,
         }
 
         try {
-            axios.patch(`${baseUrl}/api/exercises`,
+            axios.post(`${baseUrl}/api/sessions`,
                 dataSend, {
                 params: {
                     username: user.username,
                 }
-            }
-            )
+            })
                 .then((response) => {
-                    const error = response.data?.error
-                    if (!error) {
-                        const resData = response.data.message
+                    const resData = response.data.message
 
-                        dispatch(addFoods(resData))
-                        setModalVisible(false)
-                    } else {
+                    dispatch(addSessions(resData))
+                    setChooseMode(false)
+                    setModalVisible(false)
+                    navigation.navigate('SessionsScreen')
 
-                    }
                 })
         } catch (error) {
             console.log(error)
@@ -277,6 +284,57 @@ export default function ExercisesScreen() {
     }
 
 
+
+
+
+    const renderItem = ({ item, drag, isActive }) => (
+        <TouchableHighlight
+            onPress={drag}
+
+            style={{ width: '100%', ...styles.middleCol, backgroundColor: 'white' }}
+            underlayColor='white'
+        >
+            <View style={{ width: '100%', ...styles.middleRow, backgroundColor: 'white' }}>
+
+                <View
+                    style={{ ...styles.itemContainer, flexDirection: 'row' }}
+                >
+                    <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFF3E9', marginRight: 8, ...styles.middleCol }}>
+                        <Image
+                            source={{ uri: `${baseWideUrl}/${item?.thumbnail ? item.thumbnail : 'file/exercises/exercise-temp.png'}` }}
+                            style={item?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
+                        />
+                    </View>
+
+                    <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
+                        <View>
+                            <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='tail'>
+                                {
+                                    item.name
+                                }
+                            </Text>
+                        </View>
+
+                        <View style={{ ...styles.middleRow, }}>
+                            <View style={{ width: 200, position: 'relative', bottom: 6 }}>
+                                <Text style={{ color: '#727272', fontSize: 15 }} >
+                                    <Image source={
+                                        require('../../../../assets/icon-ex-fire.png')
+                                    }
+                                        style={{ width: 15, height: 15 }}
+                                    />
+                                    {calCaloriesBurnMin(item.MET, user.weight)}cal/min
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+
+                </View>
+            </View>
+        </TouchableHighlight>
+    );
+
+
     return (
         <View style={{ width: '100%' }}>
 
@@ -296,7 +354,7 @@ export default function ExercisesScreen() {
                         <ScrollView  >
                             <View style={styles.headerWrapper}>
                                 <Text style={styles.headerText}>
-                                    Edit Food
+                                    Create Session
                                 </Text>
                             </View>
 
@@ -332,12 +390,26 @@ export default function ExercisesScreen() {
                                 </View>
 
                                 <View style={{ ...styles.loginInputWrapper, marginTop: 10 }} >
-                                    <Input name='name' title='Meal name' control={control} rules={{ required: 'This is required' }} errors={errors} defaultValue={foodEdit.name} onChangeText={(name) => handleNameChange(name)} />
+                                    <Input name='name' title='Session name' control={control} rules={{ required: 'This is required' }} errors={errors} defaultValue={foodEdit.name} defaultValue={watch('name')} />
+                                </View>
+
+                                <View style={{ ...styles.loginInputWrapper, marginTop: 10, ...styles.middleRow, justifyContent: 'space-between', width: '100%' }} >
+                                    <View style={{ width: '48%' }}>
+
+                                        <Input name='practiceTime' title='Practice time' control={control} rules={{ required: 'This is required' }} errors={errors} defaultValue={foodEdit.name} placeholder={'second'} defaultValue={watch('practiceTime')} keyboardType={'numeric'} />
+                                    </View>
+
+                                    <View style={{ width: '48%' }}>
+
+                                        <Input name='restTime' title='Rest time' control={control} rules={{ required: 'This is required' }} errors={errors} defaultValue={foodEdit.name} placeholder={'second'} defaultValue={watch('restTime')} keyboardType={'numeric'} />
+                                    </View>
+
                                 </View>
 
                                 <View style={{ ...styles.loginInputWrapper, marginTop: 10 }} >
-                                    <Input name='descript' title='Description' control={control} errors={errors} numberOfLines={5} inputStyle={{ height: 'auto' }} defaultValue={foodEdit.description} onChangeText={(des) => handleDescriptChange(des)} />
+                                    <Input name='description' title='Description' control={control} errors={errors} numberOfLines={5} inputStyle={{ height: 'auto' }} defaultValue={foodEdit.description} defaultValue={watch('description')} />
                                 </View>
+
                             </View>
 
 
@@ -346,75 +418,70 @@ export default function ExercisesScreen() {
                                     <View style={{ ...styles.container }}>
 
                                         {
-                                            foodEdit.ingredients.map((ingredient, idx) => (
+                                            foods.map((exercise, idx) => (
+                                                exercise.isChoose ?
 
+                                                    <TouchableHighlight
+                                                        key={idx}
+                                                        onLongPress={() => handleChooseMode()}
 
-                                                <TouchableHighlight
-                                                    key={idx}
-                                                    onLongPress={() => handleChooseMode()}
+                                                        style={{ width: '100%', ...styles.middleCol, backgroundColor: 'white' }}
+                                                        underlayColor='white'
+                                                    >
+                                                        <View style={{ width: '100%', ...styles.middleRow, backgroundColor: 'white' }}>
 
-                                                    style={{ width: '100%', ...styles.middleCol, backgroundColor: 'white' }}
-                                                    underlayColor='white'
-                                                >
-                                                    <View style={{ width: '100%', ...styles.middleRow, backgroundColor: 'white' }}>
-
-                                                        <View
-                                                            style={{ ...styles.itemContainer, flexDirection: 'row' }}
-                                                        >
-                                                            <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFEEDF', marginRight: 8, ...styles.middleCol }}>
-                                                                <Image
-                                                                    source={{ uri: `${baseWideUrl}/${ingredient?.thumbnail ? ingredient.thumbnail : 'file/ingredients/ingredients.png'}` }}
-                                                                    style={{ width: 50, height: 50 }}
-                                                                />
-                                                            </View>
-
-                                                            <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
-                                                                <View>
-                                                                    <Text style={{ fontSize: 22, fontWeight: '600' }}>
-                                                                        {
-                                                                            ingredient.name
-                                                                        }
-                                                                    </Text>
+                                                            <View
+                                                                style={{ ...styles.itemContainer, flexDirection: 'row' }}
+                                                            >
+                                                                <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFF3E9', marginRight: 8, ...styles.middleCol }}>
+                                                                    <Image
+                                                                        source={{ uri: `${baseWideUrl}/${exercise?.thumbnail ? exercise.thumbnail : 'file/exercises/exercise-temp.png'}` }}
+                                                                        style={exercise?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
+                                                                    />
                                                                 </View>
 
-                                                                <View style={{ ...styles.middleRow }}>
-                                                                    <View style={{ width: 100, }}>
-                                                                        <Text style={{ color: '#727272' }} >
-                                                                            Protein: {ingredient.protein}
-                                                                        </Text>
-                                                                        <Text style={{ color: '#727272' }} >
-                                                                            carb: {ingredient.carb}
-                                                                        </Text>
-                                                                    </View>
-
+                                                                <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
                                                                     <View>
-                                                                        <Text style={{ color: '#727272' }} >
-                                                                            Fat: {ingredient.fat}
-                                                                        </Text>
-                                                                        <Text style={{ color: '#727272' }} >
-                                                                            Calogies: {ingredient.calories}
+                                                                        <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='tail'>
+                                                                            {
+                                                                                exercise.name
+                                                                            }
                                                                         </Text>
                                                                     </View>
-                                                                </View>
-                                                            </View>
 
-                                                            <View style={{ position: 'absolute', top: 0, right: 14, maxWidth: 50 }} >
-                                                                <Input name={ingredient._id} control={control} errors={errors} rules={{ required: 'enter' }}
-                                                                    onChangeText={(mass) => handleMassChange(ingredient, mass)}
-                                                                    placeholder='gram' defaultValue={ingredient.mass} keyboardType={'number-pad'} />
+                                                                    <View style={{ ...styles.middleRow, }}>
+                                                                        <View style={{ width: 200, position: 'relative', bottom: 6 }}>
+                                                                            <Text style={{ color: '#727272', fontSize: 15 }} >
+                                                                                <Image source={
+                                                                                    require('../../../../assets/icon-ex-fire.png')
+                                                                                }
+                                                                                    style={{ width: 15, height: 15 }}
+                                                                                />
+                                                                                {calCaloriesBurn(exercise.MET, user.weight)}cal/min
+                                                                            </Text>
+                                                                        </View>
+                                                                    </View>
+                                                                </View>
+
+                                                                {/* <View style={{ position: 'absolute', top: 0, right: 14, maxWidth: 50 }} >
+                                                                    <Input name={exercise._id} control={control} errors={errors} rules={{ required: 'enter' }}
+                                                                        onChangeText={(mass) => handleMassChange(exercise, mass)}
+                                                                        placeholder='gram' defaultValue={exercise.mass} keyboardType={'number-pad'} />
+                                                                </View> */}
                                                             </View>
                                                         </View>
-                                                    </View>
-                                                </TouchableHighlight>
-
+                                                    </TouchableHighlight>
+                                                    : <View key={idx} ></View>
 
                                             ))
                                         }
+
+
                                     </View>
 
                                     <View style={{ ...styles.middleRow, justifyContent: 'space-around', width: '100%', marginTop: 10, marginBottom: 16 }}>
                                         <CustomButton
-                                            title='Edit'
+                                            title='Create'
                                             buttonColor='blue'
                                             width={'45%'}
                                             height={40}
@@ -454,7 +521,7 @@ export default function ExercisesScreen() {
                                     height={40}
                                     borderRadius={12}
                                     fontSize={14}
-                                    onPress={() => console.log('Create Session')}
+                                    onPress={() => setModalVisible(true)}
                                 />
 
                                 <CustomButton
@@ -495,7 +562,7 @@ export default function ExercisesScreen() {
                                             <View
                                                 style={{ ...styles.itemFrontContainer }}
                                             >
-                                                <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFF3E9', marginRight: 8, ...styles.middleCol }}>
+                                                <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFF6EF', marginRight: 8, ...styles.middleCol }}>
                                                     <Image
                                                         source={{ uri: `${baseWideUrl}/${food?.thumbnail ? food.thumbnail : 'file/exercises/exercise-temp.png'}` }}
                                                         style={food?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
@@ -504,51 +571,35 @@ export default function ExercisesScreen() {
 
                                                 <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
                                                     <View>
-                                                        <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='end'>
+                                                        <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='tail'>
                                                             {
                                                                 food.name
                                                             }
                                                         </Text>
                                                     </View>
 
-                                                    <View style={{ ...styles.middleRow }}>
-                                                        <View style={{ width: 100, }}>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                Protein: {kFormatter(food.protein)}g
-                                                            </Text>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                carb: {kFormatter(food.carb)}g
-                                                            </Text>
-                                                        </View>
-
-                                                        <View>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                Fat: {kFormatter(food.fat)}g
-                                                            </Text>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                Calogies: {kFormatter(food.calories)}cal
+                                                    <View style={{ ...styles.middleRow, }}>
+                                                        <View style={{ width: 200, position: 'relative', bottom: 6 }}>
+                                                            <Text style={{ color: '#727272', fontSize: 15 }} >
+                                                                <Image source={
+                                                                    require('../../../../assets/icon-ex-fire.png')
+                                                                }
+                                                                    style={{ width: 15, height: 15 }}
+                                                                />
+                                                                {calCaloriesBurn(food.MET, user.weight)}cal/min
                                                             </Text>
                                                         </View>
                                                     </View>
-
-                                                    {/* <View style={chooseMode ? { position: 'absolute', top: 33, right: 14, opacity: 100 } : { opacity: 0 }}>
-                                                        <Checkbox
-                                                            style={{ height: 24, width: 24, borderRadius: 5 }}
-                                                            value={food.isChoose}
-                                                            onValueChange={() => handleItemChooseChange(idx)}
-                                                            color={food.isChoose ? '#45D04C' : '#C4C4C4'}
-                                                        />
-                                                    </View> */}
-
                                                 </View>
+
                                                 <View style={{ position: 'absolute', top: 25, right: 10, maxWidth: 50, ...(!chooseMode ? { right: 10 } : { right: 5 }) }} >
                                                     {
                                                         chooseMode
                                                             ? <Checkbox
                                                                 style={{ height: 24, width: 24, borderRadius: 5 }}
-                                                                value={food?.isChoose}
+                                                                value={food.isChoose}
                                                                 onValueChange={() => handleItemChooseChange(idx)}
-                                                                color={food?.isChoose ? '#45D04C' : '#C4C4C4'} />
+                                                                color={food.isChoose ? '#45D04C' : '#C4C4C4'} />
                                                             :
                                                             <AntDesign name={food.isOpen ? "down" : 'right'} size={24} color='#C4C4C4' />
                                                     }
@@ -568,7 +619,7 @@ export default function ExercisesScreen() {
                                                     <View style={{ ...styles.middleRow, zIndex: 100, height: 210 }}>
                                                         <View style={styles.container}>
                                                             <Video
-                                                                style={{ width: '98%', height: '100%', borderRadius: 10 }}
+                                                                style={{ width: '99%', height: '100%', borderRadius: 10 }}
                                                                 source={{
                                                                     uri: `${baseUrl}/${food.video}`,
                                                                 }}

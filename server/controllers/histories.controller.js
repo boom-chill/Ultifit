@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import stream from 'stream'
 import { foodModel } from '../models/foodModel.js';
 import { historiesModel } from '../models/historiesModel.js';
+import { sessionModel } from '../models/sessionModel.js';
 import { userModel } from '../models/userModel.js';
 import { foodIngredientModel } from './../models/foodIngredientModel.js';
 
@@ -15,31 +16,54 @@ export const getHistory = async (req, res) => {
             {createdAt: 0, updatedAt: 0, __v: 0,})
         .sort({time: "desc"})
 
-         //GET HISTORIES
-         let newHistories = []
-         for (const history of hitories) {
-            
-            if(history.type == 'food') {
-                let food = await foodModel.findOne(
-                    {_id: history._foodID}, 
-                    {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, ingredients: 0, author: 0, description: 0}
-                )
-    
-                const newFood = {
-                    ...food._doc,
-                    _id: history._id,
-                    time: history.time,
-                }
+        //GET HISTORIES
+       let newHistories = []
+       for (const history of hitories) {
+           
+           if(history.type == 'food') {
+               let food = await foodModel.findOne(
+                   {_id: history._foodID}, 
+                   {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, ingredients: 0, author: 0, description: 0}
+               )
 
-                newHistories.push(newFood)
-            }
-         }
-         
+               const newFood = {
+                   ...food?._doc,
+                   _id: history._id,
+                   time: history.time,
+                   
+                   name: history.name,
+                   type: 'food',
+                   calories: history.calories,
+               }
 
-        res.json({
-            error: false,
-            message: newHistories,
-        })
+               newHistories.push(newFood)
+           } else if (history.type == 'session') {
+               let session = await sessionModel.findOne(
+                   {_id: history._sessionID}, 
+                   {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, author: 0, description: 0}
+               )
+
+               const newSession = {
+                   ...session?._doc,
+                   _id: history._id,
+                   time: history.time,
+
+                   name: history.name,
+                   type: 'session',
+                   calories: history.calories,
+                   totalTime: history.totalTime,
+               }
+
+               newHistories.push(newSession)
+           }
+
+       }
+       
+
+       res.json({
+           error: false,
+           message: newHistories,
+       })
     } catch (error) {
         console.log('error', error)
         res.json({
@@ -55,11 +79,11 @@ export const postHistory = async (req, res) => {
         const data = req.body
         const username = req.query.username
 
-        const foodHistories = new historiesModel({
+        const newAddHistories = new historiesModel({
             ...data
         })
 
-        await foodHistories.save()
+        await newAddHistories.save()
 
         let hitories = await historiesModel.find({
             author: username,
@@ -68,28 +92,51 @@ export const postHistory = async (req, res) => {
         //GET HISTORIES
         let newHistories = []
         for (const history of hitories) {
-           
-           if(history.type == 'food') {
+            
+            if(history.type == 'food') {
                 let food = await foodModel.findOne(
                     {_id: history._foodID}, 
                     {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, ingredients: 0, author: 0, description: 0}
                 )
-    
+ 
                 const newFood = {
-                    ...food._doc,
+                    ...food?._doc,
                     _id: history._id,
                     time: history.time,
+                    
+                    name: history.name,
+                    type: 'food',
+                    calories: history.calories,
                 }
-
-               newHistories.push(newFood)
-           }
+ 
+                newHistories.push(newFood)
+            } else if (history.type == 'session') {
+                let session = await sessionModel.findOne(
+                    {_id: history._sessionID}, 
+                    {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, author: 0, description: 0}
+                )
+ 
+                const newSession = {
+                    ...session?._doc,
+                    _id: history._id,
+                    time: history.time,
+ 
+                    name: history.name,
+                    type: 'session',
+                    calories: history.calories,
+                    totalTime: history.totalTime,
+                }
+ 
+                newHistories.push(newSession)
+            }
+ 
         }
         
-
-       res.json({
-           error: false,
-           message: newHistories,
-       })
+ 
+        res.json({
+            error: false,
+            message: newHistories,
+        })
     } catch (error) {
         console.log('error', error)
         res.json({
@@ -111,26 +158,49 @@ export const deleteHistory = async (req, res) => {
             author: username,
         }, {createdAt: 0, updatedAt: 0, __v: 0,}).sort({time: "desc"})
 
-        //GET HISTORIES
-        let newHistories = []
-        for (const history of hitories) {
+       //GET HISTORIES
+       let newHistories = []
+       for (const history of hitories) {
            
-            if(history.type == 'food') {
-                let food = await foodModel.findOne(
-                    {_id: history._foodID}, 
-                    {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, ingredients: 0, author: 0, description: 0}
-                )
-    
-                const newFood = {
-                    ...food._doc,
-                    _id: history._id,
-                    time: history.time,
-                }
+           if(history.type == 'food') {
+               let food = await foodModel.findOne(
+                   {_id: history._foodID}, 
+                   {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, ingredients: 0, author: 0, description: 0}
+               )
 
-                newHistories.push(newFood)
-            }
-        }
-        
+               const newFood = {
+                   ...food?._doc,
+                   _id: history._id,
+                   time: history.time,
+                   
+                   name: history.name,
+                   type: 'food',
+                   calories: history.calories,
+               }
+
+               newHistories.push(newFood)
+           } else if (history.type == 'session') {
+               let session = await sessionModel.findOne(
+                   {_id: history._sessionID}, 
+                   {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, author: 0, description: 0}
+               )
+
+               const newSession = {
+                   ...session?._doc,
+                   _id: history._id,
+                   time: history.time,
+
+                   name: history.name,
+                   type: 'session',
+                   calories: history.calories,
+                   totalTime: history.totalTime,
+               }
+
+               newHistories.push(newSession)
+           }
+
+       }
+       
 
        res.json({
            error: false,
@@ -160,26 +230,49 @@ export const patchHistory = async (req, res) => {
             author: username,
         }, {createdAt: 0, updatedAt: 0, __v: 0,}).sort({time: "desc"})
 
-        //GET HISTORIES
-        let newHistories = []
-        for (const history of hitories) {
+      //GET HISTORIES
+       let newHistories = []
+       for (const history of hitories) {
            
-            if(history.type == 'food') {
-                let food = await foodModel.findOne(
-                    {_id: history._foodID}, 
-                    {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, ingredients: 0, author: 0, description: 0}
-                )
-    
-                const newFood = {
-                    ...food._doc,
-                    _id: history._id,
-                    time: history.time,
-                }
+           if(history.type == 'food') {
+               let food = await foodModel.findOne(
+                   {_id: history._foodID}, 
+                   {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, ingredients: 0, author: 0, description: 0}
+               )
 
-                newHistories.push(newFood)
-            }
-        }
-        
+               const newFood = {
+                   ...food?._doc,
+                   _id: history._id,
+                   time: history.time,
+                   
+                   name: history.name,
+                   type: 'food',
+                   calories: history.calories,
+               }
+
+               newHistories.push(newFood)
+           } else if (history.type == 'session') {
+               let session = await sessionModel.findOne(
+                   {_id: history._sessionID}, 
+                   {_id: 0, createdAt: 0, updatedAt: 0, __v: 0, author: 0, description: 0}
+               )
+
+               const newSession = {
+                   ...session?._doc,
+                   _id: history._id,
+                   time: history.time,
+
+                   name: history.name,
+                   type: 'session',
+                   calories: history.calories,
+                   totalTime: history.totalTime,
+               }
+
+               newHistories.push(newSession)
+           }
+
+       }
+       
 
        res.json({
            error: false,

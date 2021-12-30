@@ -28,6 +28,21 @@ const HistoriesSchema = new Schema({
         required: false,
     },
 
+    name: {
+        required: true,
+        type: String
+    },
+
+    calories: {
+        required: true,
+        type: Number
+    },
+
+    totalTime: {
+        required: false,
+        type: Number
+    },
+
     time: {type: Date, default: Date.now()},
     
     author: {// để phân biệt ai là người ghi

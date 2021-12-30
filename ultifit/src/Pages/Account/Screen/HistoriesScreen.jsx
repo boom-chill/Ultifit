@@ -149,7 +149,6 @@ export default function HistoriesScreen() {
         setDatePickerVisibility(false);
     };
 
-
     return (
         <View style={{ width: '100%' }}>
 
@@ -208,45 +207,90 @@ export default function HistoriesScreen() {
                                             <View
                                                 style={{ ...styles.itemFrontContainer }}
                                             >
-                                                <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#C4C4C4', marginRight: 8, ...styles.middleCol }}>
-                                                    <Image
-                                                        source={{ uri: `${baseWideUrl}/${history?.thumbnail ? history.thumbnail : 'file/foods/dinner-temp.png'}` }}
-                                                        style={history?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
-                                                    />
-                                                </View>
+                                                {
+                                                    history.type == 'food'
 
-                                                <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
+                                                        ? <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#C4C4C4', marginRight: 8, ...styles.middleCol }}>
+                                                            <Image
+                                                                source={{ uri: `${baseWideUrl}/${history?.thumbnail ? history.thumbnail : 'file/foods/dinner-temp.png'}` }}
+                                                                style={history?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
+                                                            />
+                                                        </View>
+                                                        : <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFEBEA', marginRight: 8, ...styles.middleCol }}>
+                                                            <Image
+                                                                source={{ uri: `${baseWideUrl}/${history?.thumbnail ? history.thumbnail : 'file/exercises/session-temp.png'}` }}
+                                                                style={history?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
+                                                            />
+                                                        </View>
+                                                }
+                                                <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-around', height: '94%' }}>
                                                     <View>
-                                                        <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='end'>
+                                                        <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 240 }} numberOfLines={1} ellipsizeMode='tail'>
                                                             {
                                                                 history.name
                                                             }
                                                         </Text>
                                                     </View>
 
-                                                    <View style={{ ...styles.middleRow }}>
-                                                        <View style={{ width: 100, }}>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                Protein: {kFormatter(history.protein)}g
-                                                            </Text>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                carb: {kFormatter(history.carb)}g
-                                                            </Text>
-                                                        </View>
+                                                    {
+                                                        history.type == 'food'
+                                                            ?
+                                                            (
+                                                                <View style={{ ...styles.middleRow }}>
 
-                                                        <View>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                Fat: {kFormatter(history.fat)}g
-                                                            </Text>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                Calogies: {kFormatter(history.calories)}cal
-                                                            </Text>
-                                                        </View>
-                                                    </View>
+                                                                    <View>
+                                                                        {/* <Text style={{ color: '#727272' }} >
+                                                                            Fat: {kFormatter(history.fat)}g
+                                                                        </Text> */}
+                                                                        <Text style={{ color: '#727272', fontSize: 14 }} >
+                                                                            <Image source={
+                                                                                require('../../../../assets/icon-fork.png')
+                                                                            }
+                                                                                style={{ width: 15, height: 15 }}
+                                                                            />
+                                                                            {kFormatter(history.calories)}cal
+                                                                        </Text>
+                                                                    </View>
+                                                                </View>
+                                                            )
+                                                            :
+                                                            (
+                                                                <View style={{ ...styles.middleRow, }}>
+
+                                                                    <View style={{ width: 80, }}>
+
+                                                                        <Text style={{ color: '#727272', fontSize: 14 }} >
+                                                                            <Image source={
+                                                                                require('../../../../assets/icon-ex-fire.png')
+                                                                            }
+                                                                                style={{ width: 15, height: 15 }}
+                                                                            />
+                                                                            {parseFloat(history.calories).toFixed(0)} cal
+                                                                        </Text>
+                                                                    </View>
+
+                                                                    <View style={{ width: 80, }}>
+
+
+
+                                                                        <Text style={{ color: '#727272', fontSize: 14 }} >
+                                                                            <Image source={
+                                                                                require('../../../../assets/icon-ex-clock.png')
+                                                                            }
+                                                                                style={{ width: 15, height: 15 }}
+                                                                            />
+                                                                            {parseFloat(history.totalTime / 60).toFixed(0)} min
+                                                                        </Text>
+
+                                                                    </View>
+
+                                                                </View>
+                                                            )
+                                                    }
 
 
                                                 </View>
-                                                <View style={{ position: 'absolute', top: -9, right: -3 }} >
+                                                <View style={{ position: 'absolute', top: -8, right: -1 }} >
                                                     <Text style={{ fontSize: 12, color: '#727272' }}>
                                                         {
                                                             convertTZ(history.time, "Asia/Jakarta")
@@ -258,13 +302,9 @@ export default function HistoriesScreen() {
                                             </View>
 
                                             {
-                                                history?.isChoose
+                                                history?.isChoose && history.type == 'food'
                                                     ? <View style={{ borderTopWidth: 1, width: '100%', marginTop: 9, borderTopColor: '#C4C4C4' }}>
-                                                        <ScrollView
-                                                            horizontal={true}
-                                                            style={{ marginTop: 0 }}
-                                                        >
-                                                        </ScrollView>
+
 
                                                         <View style={{ display: 'flex', flexDirection: 'row', marginTop: 10 }}>
                                                             <View style={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
@@ -308,7 +348,28 @@ export default function HistoriesScreen() {
                                                             </View>
                                                         </View>
                                                     </View>
-                                                    : <View></View>
+                                                    : <View style={{ borderTopWidth: 1, width: '100%', marginTop: 9, borderTopColor: '#C4C4C4' }}>
+
+
+                                                        <View style={{ display: 'flex', flexDirection: 'row', marginTop: 10 }}>
+                                                            <View style={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
+
+                                                                <View
+                                                                    style={{ flexGrow: 1, width: 'auto' }}
+                                                                >
+                                                                    <CustomButton
+                                                                        title='Delete'
+                                                                        buttonColor='red'
+                                                                        width={200}
+                                                                        height={30}
+                                                                        borderRadius={12}
+                                                                        fontSize={14}
+                                                                        onPress={() => handleNoticeHistoryDelete(history)}
+                                                                    />
+                                                                </View>
+                                                            </View>
+                                                        </View>
+                                                    </View>
                                             }
 
 

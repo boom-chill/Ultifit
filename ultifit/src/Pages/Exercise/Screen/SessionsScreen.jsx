@@ -12,18 +12,20 @@ import { AntDesign } from '@expo/vector-icons'
 import { kFormatter } from '../../../utils/kFormatter';
 import { addFoods } from '../../../features/food/food';
 import { addHistories } from '../../../features/histories/histories';
+import { addSessions } from '../../../features/session/session';
+import { calCaloriesBurn } from './../../../utils/calCaloriesBurn';
 
 export default function SessionScreen() {
     const { handleSubmit, control, formState: { errors }, watch } = useForm();
     const dispatch = useDispatch()
 
     const user = useSelector((state) => state.user.user)
-    const userFoods = useSelector((state) => state.food.foods)
+    const userFoods = useSelector((state) => state.session.sessions)
 
     const [chooseMode, setChooseMode] = React.useState(false)
 
     const [foodEdit, setFoodEdit] = React.useState({
-        ingredients: []
+        exercises: []
     });
 
     const [foodDelete, setFoodDelete] = React.useState('')
@@ -37,7 +39,7 @@ export default function SessionScreen() {
 
     React.useEffect(() => {
 
-        axios.get(`${baseUrl}/api/foods`, {
+        axios.get(`${baseUrl}/api/sessions`, {
             params: {
                 username: user.username,
             }
@@ -47,7 +49,7 @@ export default function SessionScreen() {
                 if (!error) {
                     const resData = response.data.message
 
-                    dispatch(addFoods(resData))
+                    dispatch(addSessions(resData))
 
                     const foods = AddIsChoose(resData)
                     setFoods(foods)
@@ -61,6 +63,7 @@ export default function SessionScreen() {
         const foods = AddIsChoose(userFoods)
         setFoods(foods)
     }, [userFoods])
+
 
     const AddIsChoose = (foods) => {
         let newFoods = []
@@ -79,34 +82,31 @@ export default function SessionScreen() {
 
     const onSubmit = (data) => {
 
-        let newFat = 0
-        let newCalo = 0
-        let newPro = 0
-        let newCarb = 0
+        let totalCal = 0
+        const restTime = Number(foodEdit.restTime)
+        const practiceTime = Number(foodEdit.practiceTime)
 
-        foodEdit.ingredients.forEach((ingredient, idx) => {
-            newFat += ingredient.fat * ingredient.mass
-            newCalo += ingredient.calories * ingredient.mass
-            newPro += ingredient.protein * ingredient.mass
-            newCarb += ingredient.carb * ingredient.mass
-
+        foodEdit.exercises.forEach((exercise, idx) => {
+            totalCal += practiceTime * (calCaloriesBurn(exercise.MET, user.weight) / 60)
         })
 
-        let newFoodEdit = {
-            ...foodEdit,
-            fat: newFat,
-            calories: newCalo,
-            protein: newPro,
-            carb: newCarb,
-        }
+        let totalTime = (restTime + practiceTime) * foodEdit.exercises.length
 
         const dataSend = {
-            data: newFoodEdit,
+            data: {
+                ...foodEdit,
+                name: foodEdit.name,
+                description: foodEdit.description,
+                caloriesBurn: totalCal,
+                practiceTime: practiceTime,
+                restTime: restTime,
+                totalTime: totalTime,
+            },
             img: image.base64 ?? null,
         }
 
         try {
-            axios.patch(`${baseUrl}/api/foods`,
+            axios.patch(`${baseUrl}/api/sessions/${foodEdit._id}`,
                 dataSend, {
                 params: {
                     username: user.username,
@@ -118,7 +118,7 @@ export default function SessionScreen() {
                     if (!error) {
                         const resData = response.data.message
 
-                        dispatch(addFoods(resData))
+                        dispatch(addSessions(resData))
                         setModalVisible(false)
                     } else {
 
@@ -169,7 +169,7 @@ export default function SessionScreen() {
             base64: null
         })
         setFoodEdit({
-            ingredients: []
+            exercises: []
         })
         setModalVisible(false)
     }
@@ -190,6 +190,20 @@ export default function SessionScreen() {
         setFoodEdit({
             ...foodEdit,
             ingredients: newIngredients
+        })
+    }
+
+    const handleRestTimeChange = (restTime) => {
+        setFoodEdit({
+            ...foodEdit,
+            restTime: restTime,
+        })
+    }
+
+    const handlePracticeTimeChange = (practiceTime) => {
+        setFoodEdit({
+            ...foodEdit,
+            practiceTime: practiceTime,
         })
     }
 
@@ -219,7 +233,7 @@ export default function SessionScreen() {
 
     const handleFoodDelete = () => {
         try {
-            axios.delete(`${baseUrl}/api/foods/${foodDelete}`, {
+            axios.delete(`${baseUrl}/api/sessions/${foodDelete}`, {
                 params: {
                     username: user.username
                 }
@@ -228,8 +242,7 @@ export default function SessionScreen() {
                     const error = response.data?.error
                     if (!error) {
                         const resData = response.data.message
-
-                        dispatch(addFoods(resData))
+                        dispatch(addSessions(resData))
                         setChooseMode(false)
                     } else {
 
@@ -240,13 +253,16 @@ export default function SessionScreen() {
         }
     }
 
-    const handleAddFood = (food) => {
+    const handleAddFood = (exercise) => {
 
         const dataSend = {
-            _foodID: food._id,
+            _sessionID: exercise._id,
             time: Date.now(),
-            type: 'food',
+            type: 'session',
             author: user.username,
+            calories: exercise.caloriesBurn,
+            totalTime: exercise.totalTime,
+            name: exercise.name
         }
 
         try {
@@ -332,6 +348,17 @@ export default function SessionScreen() {
                                     <Input name='name' title='Meal name' control={control} rules={{ required: 'This is required' }} errors={errors} defaultValue={foodEdit.name} onChangeText={(name) => handleNameChange(name)} />
                                 </View>
 
+                                <View style={{ ...styles.loginInputWrapper, marginTop: 10, ...styles.middleRow, justifyContent: 'space-between', width: '100%' }} >
+                                    <View style={{ width: '48%' }}>
+                                        <Input name='practiceTime' title='Practice time' control={control} rules={{ required: 'This is required' }} errors={errors} defaultValue={foodEdit.practiceTime} placeholder={'second'} keyboardType={'numeric'} onChangeText={(practiceTime) => handlePracticeTimeChange(practiceTime)} />
+                                    </View>
+
+                                    <View style={{ width: '48%' }}>
+                                        <Input name='restTime' title='Rest time' control={control} rules={{ required: 'This is required' }} errors={errors} defaultValue={foodEdit.restTime} placeholder={'second'} keyboardType={'numeric'} onChangeText={(restTime) => handleRestTimeChange(restTime)} />
+                                    </View>
+
+                                </View>
+
                                 <View style={{ ...styles.loginInputWrapper, marginTop: 10 }} >
                                     <Input name='descript' title='Description' control={control} errors={errors} numberOfLines={5} inputStyle={{ height: 'auto' }} defaultValue={foodEdit.description} onChangeText={(des) => handleDescriptChange(des)} />
                                 </View>
@@ -343,66 +370,54 @@ export default function SessionScreen() {
                                     <View style={{ ...styles.container }}>
 
                                         {
-                                            foodEdit.ingredients.map((ingredient, idx) => (
+                                            foodEdit?.exercises.map((food, idx) => (
 
-
-                                                <TouchableHighlight
-                                                    key={idx}
-                                                    onLongPress={() => handleChooseMode()}
-
-                                                    style={{ width: '100%', ...styles.middleCol, backgroundColor: 'white' }}
-                                                    underlayColor='white'
-                                                >
-                                                    <View style={{ width: '100%', ...styles.middleRow, backgroundColor: 'white' }}>
-
-                                                        <View
-                                                            style={{ ...styles.itemContainer, flexDirection: 'row' }}
+                                                <View style={{ width: '100%', ...styles.middleRow, backgroundColor: 'white' }} key={idx} >
+                                                    <View
+                                                        style={{ ...styles.itemContainer, ...(food.isOpen ? { height: 310 } : { height: 90 }) }}
+                                                    >
+                                                        <TouchableHighlight
+                                                            style={{ width: '100%', ...styles.middleCol, backgroundColor: 'white' }}
+                                                            underlayColor='white'
                                                         >
-                                                            <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFEEDF', marginRight: 8, ...styles.middleCol }}>
-                                                                <Image
-                                                                    source={{ uri: `${baseWideUrl}/${ingredient?.thumbnail ? ingredient.thumbnail : 'file/ingredients/ingredients.png'}` }}
-                                                                    style={{ width: 50, height: 50 }}
-                                                                />
-                                                            </View>
-
-                                                            <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
-                                                                <View>
-                                                                    <Text style={{ fontSize: 22, fontWeight: '600' }}>
-                                                                        {
-                                                                            ingredient.name
-                                                                        }
-                                                                    </Text>
+                                                            <View
+                                                                style={{ ...styles.itemFrontContainer }}
+                                                            >
+                                                                <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFF6EF', marginRight: 8, ...styles.middleCol }}>
+                                                                    <Image
+                                                                        source={{ uri: `${baseWideUrl}/${food?.thumbnail ? food.thumbnail : 'file/exercises/exercise-temp.png'}` }}
+                                                                        style={food?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
+                                                                    />
                                                                 </View>
 
-                                                                <View style={{ ...styles.middleRow }}>
-                                                                    <View style={{ width: 100, }}>
-                                                                        <Text style={{ color: '#727272' }} >
-                                                                            Protein: {ingredient.protein}
-                                                                        </Text>
-                                                                        <Text style={{ color: '#727272' }} >
-                                                                            carb: {ingredient.carb}
-                                                                        </Text>
-                                                                    </View>
-
+                                                                <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
                                                                     <View>
-                                                                        <Text style={{ color: '#727272' }} >
-                                                                            Fat: {ingredient.fat}
+                                                                        <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='tail'>
+                                                                            {
+                                                                                food.name
+                                                                            }
                                                                         </Text>
-                                                                        <Text style={{ color: '#727272' }} >
-                                                                            Calogies: {ingredient.calories}
-                                                                        </Text>
+                                                                    </View>
+
+                                                                    <View style={{ ...styles.middleRow, }}>
+                                                                        <View style={{ width: 200, position: 'relative', bottom: 6 }}>
+                                                                            <Text style={{ color: '#727272', fontSize: 15 }} >
+                                                                                <Image source={
+                                                                                    require('../../../../assets/icon-ex-fire.png')
+                                                                                }
+                                                                                    style={{ width: 15, height: 15 }}
+                                                                                />
+                                                                                {calCaloriesBurn(food.MET, user.weight)}cal/min
+                                                                            </Text>
+                                                                        </View>
                                                                     </View>
                                                                 </View>
                                                             </View>
+                                                        </TouchableHighlight>
 
-                                                            <View style={{ position: 'absolute', top: 0, right: 14, maxWidth: 50 }} >
-                                                                <Input name={ingredient._id} control={control} errors={errors} rules={{ required: 'enter' }}
-                                                                    onChangeText={(mass) => handleMassChange(ingredient, mass)}
-                                                                    placeholder='gram' defaultValue={ingredient.mass} keyboardType={'number-pad'} />
-                                                            </View>
-                                                        </View>
                                                     </View>
-                                                </TouchableHighlight>
+                                                </View>
+
 
 
                                             ))
@@ -493,41 +508,83 @@ export default function SessionScreen() {
                                             <View
                                                 style={{ ...styles.itemFrontContainer }}
                                             >
-                                                <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#C4C4C4', marginRight: 8, ...styles.middleCol }}>
+                                                <View style={{ width: 90, height: 73, borderRadius: 10, backgroundColor: '#FFEBEA', marginRight: 8, ...styles.middleCol }}>
                                                     <Image
-                                                        source={{ uri: `${baseWideUrl}/${food?.thumbnail ? food.thumbnail : 'file/foods/dinner-temp.png'}` }}
+                                                        source={{ uri: `${baseWideUrl}/${food?.thumbnail ? food.thumbnail : 'file/exercises/session-temp.png'}` }}
                                                         style={food?.thumbnail ? { width: '100%', height: '100%', borderRadius: 10 } : { width: 60, height: 60 }}
                                                     />
                                                 </View>
 
                                                 <View style={{ ...styles.middleCol, alignItems: 'flex-start', justifyContent: 'space-between', height: '100%' }}>
                                                     <View>
-                                                        <Text style={{ fontSize: 22, fontWeight: '600' }}>
+                                                        <Text style={{ fontSize: 22, fontWeight: '600', maxWidth: 210 }} numberOfLines={1} ellipsizeMode='tail'>
                                                             {
                                                                 food.name
                                                             }
                                                         </Text>
                                                     </View>
 
-                                                    <View style={{ ...styles.middleRow }}>
-                                                        <View style={{ width: 100, }}>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                Protein: {kFormatter(food.protein)}g
+                                                    <View style={{ ...styles.middleRow, }}>
+                                                        <View style={{ width: 60, }}>
+                                                            <Text style={{ color: '#727272', fontSize: 14 }} >
+                                                                <Image source={
+                                                                    require('../../../../assets/icon-ex-alarm.png')
+                                                                }
+                                                                    style={{ width: 15, height: 15 }}
+                                                                />
+                                                                {food.restTime}s
                                                             </Text>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                carb: {kFormatter(food.carb)}g
+
+                                                            <Text style={{ color: '#727272', fontSize: 14 }} >
+                                                                <Image source={
+                                                                    require('../../../../assets/icon-ex-timer.png')
+                                                                }
+                                                                    style={{ width: 15, height: 15 }}
+                                                                />
+                                                                {food.practiceTime}s
                                                             </Text>
                                                         </View>
 
-                                                        <View>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                Fat: {kFormatter(food.fat)}g
+                                                        <View style={{ width: 80, }}>
+                                                            <Text style={{ color: '#727272', fontSize: 14 }} >
+                                                                <Image source={
+                                                                    require('../../../../assets/icon-ex-heartbeat.png')
+                                                                }
+                                                                    style={{ width: 15, height: 15 }}
+                                                                />
+                                                                {food.exercises.length} exs
                                                             </Text>
-                                                            <Text style={{ color: '#727272' }} >
-                                                                Calogies: {kFormatter(food.calories)}cal
+
+                                                            <Text style={{ color: '#727272', fontSize: 14 }} >
+                                                                <Image source={
+                                                                    require('../../../../assets/icon-ex-fire.png')
+                                                                }
+                                                                    style={{ width: 15, height: 15 }}
+                                                                />
+                                                                {parseFloat(food.caloriesBurn).toFixed(0)} cal
                                                             </Text>
                                                         </View>
+
+                                                        <View style={{ width: 80, }}>
+
+                                                            <Text style={{ color: '#727272', fontSize: 14 }} >
+
+                                                            </Text>
+
+                                                            <Text style={{ color: '#727272', fontSize: 14 }} >
+                                                                <Image source={
+                                                                    require('../../../../assets/icon-ex-clock.png')
+                                                                }
+                                                                    style={{ width: 15, height: 15 }}
+                                                                />
+                                                                {parseFloat(food.totalTime / 60).toFixed(0)} min
+                                                            </Text>
+
+                                                        </View>
+
                                                     </View>
+
+
 
 
                                                 </View>
@@ -547,7 +604,7 @@ export default function SessionScreen() {
                                                     >
                                                         <View style={{ ...styles.middleRow, zIndex: 100 }}>
                                                             {
-                                                                food.ingredients.map((ingredient, idx) => (
+                                                                food.exercises.map((ingredient, idx) => (
                                                                     <View style={{ ...styles.middleRow, width: 'auto', heigh: 30, backgroundColor: '#E9E9E9', borderRadius: 12, marginRight: 8 }}
                                                                         key={idx}
                                                                     >
