@@ -15,13 +15,13 @@
 
 # DEMO IMAGES
 Account screen <br>
-![Screenshot] (/imgs/sc-account.png)
+![Screenshot](/imgs/sc-account.png)
 
 Foods screen <br>
-![Screenshot] (/imgs/sc-foods.png)
+![Screenshot](/imgs/sc-foods.png)
 
 Exercises screen <br>
-![Screenshot] (/imgs/sc-exercises.png)
+![Screenshot](/imgs/sc-exercises.png)
 
 # Note
 - This project is being developed
