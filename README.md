@@ -14,14 +14,14 @@
 - My mail: phuongnam.infl@gmail.com -->
 
 # DEMO IMAGES
-Account screen
-![img] (/imgs/sc-account.png)
+Account screen <br>
+![Screenshot] (/imgs/sc-account.png)
 
-Foods screen
-![img] (/imgs/sc-foods.png)
+Foods screen <br>
+![Screenshot] (/imgs/sc-foods.png)
 
-Exercises screen
-![img] (/imgs/sc-account.png)
+Exercises screen <br>
+![Screenshot] (/imgs/sc-exercises.png)
 
 # Note
 - This project is being developed
