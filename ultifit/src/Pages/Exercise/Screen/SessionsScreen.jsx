@@ -12,8 +12,10 @@ import { AntDesign } from '@expo/vector-icons'
 import { kFormatter } from '../../../utils/kFormatter';
 import { addFoods } from '../../../features/food/food';
 import { addHistories } from '../../../features/histories/histories';
-import { addSessions } from '../../../features/session/session';
+import { addSessions, addStartSession, openStartSession } from '../../../features/session/session';
 import { calCaloriesBurn } from './../../../utils/calCaloriesBurn';
+import StartExerciseModal from './../Modal/StartExerciseModal';
+import PopupModal from './../../../Components/PopupModal/PopupModal';
 
 export default function SessionScreen() {
     const { handleSubmit, control, formState: { errors }, watch } = useForm();
@@ -31,7 +33,6 @@ export default function SessionScreen() {
     const [foodDelete, setFoodDelete] = React.useState('')
 
     const [modalVisible, setModalVisible] = React.useState(false);
-
 
     const [image, setImage] = React.useState({})
 
@@ -174,25 +175,6 @@ export default function SessionScreen() {
         setModalVisible(false)
     }
 
-    const handleMassChange = (ingredient, mass) => {
-        let newIngredient = {
-            ...ingredient,
-            mass: mass,
-        }
-        let newIngredients = [
-            ...foodEdit.ingredients,
-        ]
-        const objIndex = foodEdit.ingredients.findIndex((obj => obj._id == ingredient._id))
-        newIngredients[objIndex] = {
-            ...newIngredient
-        }
-
-        setFoodEdit({
-            ...foodEdit,
-            ingredients: newIngredients
-        })
-    }
-
     const handleRestTimeChange = (restTime) => {
         setFoodEdit({
             ...foodEdit,
@@ -253,36 +235,40 @@ export default function SessionScreen() {
         }
     }
 
-    const handleAddFood = (exercise) => {
+    const handleStartSession = (exercise) => {
 
-        const dataSend = {
-            _sessionID: exercise._id,
-            time: Date.now(),
-            type: 'session',
-            author: user.username,
-            calories: exercise.caloriesBurn,
-            totalTime: exercise.totalTime,
-            name: exercise.name
-        }
+        // const dataSend = {
+        //     _sessionID: exercise._id,
+        //     time: Date.now(),
+        //     type: 'session',
+        //     author: user.username,
+        //     calories: exercise.caloriesBurn,
+        //     totalTime: exercise.totalTime,
+        //     name: exercise.name
+        // }
 
-        try {
-            axios.post(`${baseUrl}/api/histories`, dataSend, {
-                params: {
-                    username: user.username,
-                }
-            })
-                .then((response) => {
-                    const error = response.data?.error
-                    if (!error) {
-                        const resData = response.data.message
-                        dispatch(addHistories(resData))
-                    } else {
+        // try {
+        //     axios.post(`${baseUrl}/api/histories`, dataSend, {
+        //         params: {
+        //             username: user.username,
+        //         }
+        //     })
+        //         .then((response) => {
+        //             const error = response.data?.error
+        //             if (!error) {
+        //                 const resData = response.data.message
+        //                 dispatch(addHistories(resData))
+        //             } else {
 
-                    }
-                })
-        } catch (error) {
-            console.log(error)
-        }
+        //             }
+        //         })
+        // } catch (error) {
+        //     console.log(error)
+        // }
+
+        console.log(exercise)
+        dispatch(addStartSession(exercise))
+        dispatch(openStartSession())
     }
 
     const handleNoticeFoodDelete = (id) => {
@@ -290,10 +276,14 @@ export default function SessionScreen() {
         setChooseMode(true)
     }
 
-
     return (
         <View style={{ width: '100%' }}>
+
+
             <View>
+
+                <StartExerciseModal />
+
                 <Modal
                     animationType="slide"
                     transparent={false}
@@ -577,7 +567,7 @@ export default function SessionScreen() {
                                                                 }
                                                                     style={{ width: 15, height: 15 }}
                                                                 />
-                                                                {parseFloat(food.totalTime / 60).toFixed(0)} min
+                                                                {food.totalTime > 60 ? parseFloat(food.totalTime / 60).toFixed(0) + 'min' : parseFloat(food.totalTime).toFixed(0) + 's'}
                                                             </Text>
 
                                                         </View>
@@ -626,13 +616,13 @@ export default function SessionScreen() {
                                                             >
 
                                                                 <CustomButton
-                                                                    title='Add'
+                                                                    title='Start'
                                                                     buttonColor='purple'
                                                                     width={90}
                                                                     height={30}
                                                                     borderRadius={12}
                                                                     fontSize={14}
-                                                                    onPress={() => handleAddFood(food)}
+                                                                    onPress={() => handleStartSession(food)}
                                                                 />
                                                             </View>
 

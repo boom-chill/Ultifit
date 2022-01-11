@@ -35,8 +35,10 @@
     "react-hook-form": "^7.21.0",
     "react-icons": "^4.3.1",
     "react-native": "0.64.3",
+    "react-native-countdown-circle-timer": "^2.5.4",
     "react-native-date-picker": "^4.1.3",
     "react-native-elements": "^3.4.2",
+    "react-native-gesture-handler": "^2.1.1",
     "react-native-modal-datetime-picker": "^13.0.0",
     "react-native-pager-view": "5.4.6",
     "react-native-safe-area-context": "^3.3.2",
@@ -48,7 +50,9 @@
     "redux-devtools-extension": "^2.13.9",
     "redux-saga": "^1.1.3",
     "remote-redux-devtools": "^0.5.16",
-    "tailwind-rn": "^3.0.1"
+    "tailwind-rn": "^3.0.1",
+    "react-native-reanimated": "~2.2.0",
+    "react-native-svg": "12.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9"

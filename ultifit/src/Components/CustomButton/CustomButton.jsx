@@ -16,6 +16,9 @@ export default function CustomButton(props) {
     else if (buttonColor == 'gray') {
         buttonColor = '#E9E9E9'
     }
+    else if (buttonColor == 'yellow') {
+        buttonColor = '#FEEDC1'
+    }
 
     if (!borderRadius) {
         borderRadius = 12

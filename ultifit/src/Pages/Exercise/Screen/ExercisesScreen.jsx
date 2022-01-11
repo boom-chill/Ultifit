@@ -619,12 +619,12 @@ export default function ExercisesScreen({ navigation }) {
                                                     <View style={{ ...styles.middleRow, zIndex: 100, height: 210 }}>
                                                         <View style={styles.container}>
                                                             <Video
-                                                                style={{ width: '99%', height: '100%', borderRadius: 10 }}
+                                                                style={{ width: '100%', height: '100%', borderRadius: 10 }}
                                                                 source={{
                                                                     uri: `${baseUrl}/${food.video}`,
                                                                 }}
                                                                 ratio={16 / 9}
-                                                                resizeMode="contain"
+                                                                resizeMode="cover"
                                                                 isLooping
                                                                 isMuted={true}
                                                                 shouldPlay
