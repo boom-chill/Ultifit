@@ -35,7 +35,23 @@ const HistoriesSchema = new Schema({
 
     calories: {
         required: true,
-        type: Number
+        type: Number,
+        default: 0,
+    },
+
+    protein: {
+        required: false,
+        type: Number,
+    },
+
+    fat: {
+        required: false,
+        type: Number,
+    },
+
+    carb: {
+        required: false,
+        type: Number,
     },
 
     totalTime: {

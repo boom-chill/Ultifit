@@ -248,6 +248,9 @@ export default function FoodsScreen() {
             type: 'food',
             author: user.username,
             calories: food.calories,
+            protein: food.protein,
+            carb: food.carb,
+            fat: food.fat,
             name: food.name
         }
 

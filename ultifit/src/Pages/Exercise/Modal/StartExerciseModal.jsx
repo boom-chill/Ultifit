@@ -208,7 +208,7 @@ export default function StartExerciseModal() {
                                         duration={isPractice ? Number(session.practiceTime) : (seri == 0 ? 5 : Number(session.restTime))}
                                         onComplete={() => {
                                             changeEx()
-                                            return [true, 500]
+                                            return [true]
                                         }}
                                         colors={isPractice ? '#C11414' : '#337732'}
                                         rotation='clockwise'

@@ -279,7 +279,7 @@ export default function HistoriesScreen() {
                                                                             }
                                                                                 style={{ width: 15, height: 15 }}
                                                                             />
-                                                                            {parseFloat(history.totalTime / 60).toFixed(0)} min
+                                                                            {history.totalTime > 60 ? parseFloat(history.totalTime / 60).toFixed(0) + 'min' : parseFloat(history.totalTime).toFixed(0) + 's'}
                                                                         </Text>
 
                                                                     </View>

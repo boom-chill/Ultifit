@@ -20,7 +20,6 @@ import UserInfo from '../../Pages/UserInfo/UserInfo';
 
 export default function Routes() {
     const user = useSelector((state) => state.user.user)
-    console.log("🚀 ~ file: Routes.js ~ line 22 ~ Routes ~ user", user)
     const Tab = createBottomTabNavigator();
     const RootStack = createStackNavigator()
     return (
@@ -100,8 +99,7 @@ export default function Routes() {
               })}
           >
             
-              <Tab.Screen name="Home" component={Home}  />
-              <Tab.Screen name="Summary" component={Summary} />
+              <Tab.Screen name="Home" component={Summary} />
               <Tab.Screen name="Exercise" component={Session} />
               <Tab.Screen name="Food" component={Food} />
               <Tab.Screen name="Account" component={Account} options={{title: user.name}} />
