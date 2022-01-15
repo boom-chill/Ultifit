@@ -6,30 +6,31 @@ import { useSelector, useDispatch } from 'react-redux';
 import { addHistories } from '../../features/histories/histories';
 import { kFormatter } from './../../utils/kFormatter';
 import { dateFormat } from '../../utils/dateFormat';
+import { Input } from '../../../src/Components/Input/Input';
+import { useForm } from "react-hook-form";
+import CustomButton from './../../Components/CustomButton/CustomButton';
 
 function Summary(props) {
+    const { handleSubmit, control, formState: { errors }, watch } = useForm();
 
     const today = new Date()
     const user = useSelector((state) => state.user.user)
     const histories = useSelector((state) => state.history.histories)
     const dispatch = useDispatch()
 
-    const [viewCol, setViewCol] = React.useState({
-        resArr: [],
-        biggestCal: 1,
-    })
+    const [isInputWater, setIsInputWater] = React.useState(false)
+
+    const [viewCol, setViewCol] = React.useState(null)
+
+    const [waterMass, setWaterMass] = React.useState(0)
+
 
     const [year, setYear] = React.useState(new Date().getFullYear())
 
 
-    const [dayStatistic, setDayStatistic] = React.useState({
-        calOut: 1,
-        calIn: 1,
-        carb: 0,
-        fat: 0,
-        protein: 0,
-    })
-    console.log("🚀 ~ file: Summary.jsx ~ line 28 ~ Summary ~ dayStatistic", dayStatistic)
+
+
+    const [dayStatistic, setDayStatistic] = React.useState(null)
 
 
     const statistical = (summary, nowYear) => {
@@ -173,8 +174,12 @@ function Summary(props) {
                 }
 
                 reses.forEach((ele, idx) => {
-                    const calInRate = ele.calIn / biggestCal
-                    const calOutRate = ele.calOut / biggestCal
+                    let calInRate = 0
+                    let calOutRate = 0
+                    if (ele.calIn != 0 || ele.calOut != 0) {
+                        calInRate = ele.calIn / biggestCal
+                        calOutRate = ele.calOut / biggestCal
+                    }
 
                     reses[idx] = {
                         ...reses[idx],
@@ -200,8 +205,12 @@ function Summary(props) {
         }
 
         reses.forEach((ele, idx) => {
-            const calInRate = ele.calIn / biggestCal
-            const calOutRate = ele.calOut / biggestCal
+            let calInRate = 0
+            let calOutRate = 0
+            if (ele.calIn != 0 || ele.calOut != 0) {
+                calInRate = ele.calIn / biggestCal
+                calOutRate = ele.calOut / biggestCal
+            }
 
             reses[idx] = {
                 ...reses[idx],
@@ -220,8 +229,8 @@ function Summary(props) {
         const end = new Date()
         end.setHours(23, 59, 59, 999)
 
-        let calIn = 1
-        let calOut = 1
+        let calIn = 0
+        let calOut = 0
         let carb = 0
         let fat = 0
         let protein = 0
@@ -243,13 +252,28 @@ function Summary(props) {
             }
         })
 
-        setDayStatistic({
-            calOut: calOut,
-            calIn: calIn,
-            carb: carb,
-            fat: fat,
-            protein: protein,
-        })
+        if (calIn == 0 && calOut == 0) {
+            setDayStatistic({
+                calOut: calOut,
+                calIn: calIn,
+                calInRate: 0,
+                calOutRate: 0,
+                carb: carb,
+                fat: fat,
+                protein: protein,
+            })
+        } else {
+
+            setDayStatistic({
+                calOut: calOut,
+                calIn: calIn,
+                calInRate: (calIn / (calIn + calOut)),
+                calOutRate: (calOut / (calIn + calOut)),
+                carb: carb,
+                fat: fat,
+                protein: protein,
+            })
+        }
     }
 
     React.useEffect(() => {
@@ -273,6 +297,25 @@ function Summary(props) {
         } catch (error) {
 
         }
+
+        try {
+            axios.get(`${baseUrl}/api/histories/drink`, {
+                params: {
+                    username: user.username
+                }
+            })
+                .then((response) => {
+                    const error = response.data?.error
+                    if (!error) {
+                        const resData = response.data.message
+                        setWaterMass(resData.mass)
+                    } else {
+                        console.log(response.data.message)
+                    }
+                })
+        } catch (error) {
+
+        }
     }, [])
 
     const nextYear = (year) => {
@@ -285,15 +328,48 @@ function Summary(props) {
         setYear(year - 1)
     }
 
+    const onSubmit = (data) => {
+        try {
+            axios.post(`${baseUrl}/api/histories/drink`, {
+                mass: Number(data.waterMass)
+            }, {
+                params: {
+                    username: user.username
+                }
+            })
+                .then((response) => {
+                    const resData = response.data.message
+                    setWaterMass(resData.mass)
+                    setIsInputWater(false)
+                })
+        } catch (error) {
+
+        }
+    }
+
     React.useEffect(() => {
         dayStatistical(histories)
         setViewCol(statistical(histories, year))
     }, [histories])
 
+
+
+    if (!dayStatistic && !viewCol) {
+        return (
+            <View>
+                <Text>
+                    Loading...
+                </Text>
+            </View>
+        )
+    }
+
+
+
     return (
         <View style={{ ...styles.container }}>
             <ScrollView style={{ width: '100%', height: '100%' }}>
-                <View style={{ width: '100%', ...styles.middleCol }}>
+                <View style={{ width: '100%', ...styles.middleCol, marginTop: 16 }}>
 
                     <View style={{ ...styles.summaryChartContainer }}>
                         <View style={{ marginVertical: 10, ...styles.middleRow }} >
@@ -329,13 +405,20 @@ function Summary(props) {
                                     <View style={{ height: '100%' }} key={idx}>
                                         <View style={{ width: '100%', ...styles.middleCol }}>
                                             <View style={{ ...styles.summaryBackgroundCol, ...styles.middleCol, justifyContent: 'flex-end', backgroundColor: (11 - idx == new Date().getMonth() && year == new Date().getFullYear() ? '#FEC89A' : '#EFF3FE') }}>
-                                                <View style={{ height: col.calInRate * 110, width: 8, borderRadius: 10, backgroundColor: '#C19EE0' }}>
+                                                {
+                                                    viewCol ?
+                                                        (<>
+                                                            <View style={{ height: (col?.calInRate * 110), width: 8, borderRadius: 10, backgroundColor: '#C19EE0' }}>
 
-                                                </View>
+                                                            </View>
 
-                                                <View style={{ height: col.calOutRate * 110 < 1 && col.calOutRate * 110 != 0 ? 2 : col.calOutRate * 110, width: 8, borderRadius: 10, backgroundColor: '#F07167', marginTop: (col.calIn == 0 || col.calOut == 0 ? 0 : 10) }}>
+                                                            <View style={{ height: (col?.calOutRate * 110 ?? 0) < 1 && col?.calOutRate * 110 != 0 ? 2 : col?.calOutRate * 110, width: 8, borderRadius: 10, backgroundColor: '#F07167', marginTop: (col?.calIn == 0 || col?.calOut == 0 ? 0 : 10) }}>
 
-                                                </View>
+                                                            </View>
+                                                        </>
+                                                        )
+                                                        : <View></View>
+                                                }
                                             </View>
                                             <Text style={{ color: '#BACCFD', fontSize: 12 }}>
                                                 {col?.month >= 10 ? col?.month : '0' + col?.month}
@@ -381,7 +464,7 @@ function Summary(props) {
                                     <View style={{ width: 60, height: 65, backgroundColor: '#FFEEDF', borderRadius: 10, ...styles.middleRow }}>
 
                                         <Image
-                                            source={require('../../../assets/trans-fat.png')}
+                                            source={require('../../../assets/barley.png')}
                                             style={{ width: 48, height: 48 }}
                                         />
                                     </View>
@@ -389,11 +472,11 @@ function Summary(props) {
                                     <View style={{ marginLeft: 14 }}>
                                         <Text style={{ fontSize: 24, fontWeight: '700' }}>
                                             {
-                                                kFormatter(dayStatistic.fat)
+                                                kFormatter(dayStatistic.carb)
                                             }g
                                         </Text>
                                         <Text style={{ color: '#727272', fontSize: 15 }}>
-                                            Fat
+                                            Carb
                                         </Text>
                                     </View>
                                 </View>
@@ -450,7 +533,7 @@ function Summary(props) {
 
                     <View style={{ width: '96%', ...styles.middleRow, justifyContent: 'space-between', alignItems: 'flex-start', marginVertical: 16 }}>
                         <View
-                            style={{ ...styles.summaryChartContainer, width: '44%', height: 200, justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}
+                            style={{ ...styles.summaryChartContainer, width: '44%', height: '100%', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}
                         >
                             <View style={{ ...styles.middleRow, marginBottom: 24 }}>
                                 <View style={{ width: 60, height: 65, backgroundColor: '#FFCFCB', borderRadius: 10, ...styles.middleRow }}>
@@ -478,9 +561,13 @@ function Summary(props) {
 
                                     <View style={{ ...styles.middleRow, backgroundColor: '#E0E8FF', height: 5, width: 120, justifyContent: 'space-between', marginBottom: 5 }}>
 
+                                        {
+                                            dayStatistic ?
+                                                <View style={{ width: (dayStatistic?.calOutRate ?? 0) * 110, height: 8, borderRadius: 10, backgroundColor: '#F07167' }}>
+                                                </View>
+                                                : <View></View>
+                                        }
 
-                                        <View style={{ width: (dayStatistic.calIn / (dayStatistic.calIn + dayStatistic.calOut)) * 110 < 1 && (dayStatistic.calOut / 100) * 110 != 0 ? 2 : (dayStatistic.calOut / (dayStatistic.calIn + dayStatistic.calOut)) * 110, height: 8, borderRadius: 10, backgroundColor: '#F07167' }}>
-                                        </View>
 
                                     </View>
                                 </View>
@@ -496,8 +583,14 @@ function Summary(props) {
 
                                     <View style={{ ...styles.middleRow, backgroundColor: '#E0E8FF', height: 5, width: 120, justifyContent: 'space-between' }}>
 
-                                        <View style={{ width: (dayStatistic.calIn / (dayStatistic.calIn + dayStatistic.calOut)) * 110, height: 8, borderRadius: 10, backgroundColor: '#C19EE0' }}>
-                                        </View>
+
+                                        {
+                                            dayStatistic ?
+                                                <View style={{ width: (dayStatistic?.calInRate ?? 0) * 110, height: 8, borderRadius: 10, backgroundColor: '#C19EE0' }}>
+                                                </View>
+                                                : <View></View>
+                                        }
+
 
                                     </View>
                                 </View>
@@ -510,8 +603,9 @@ function Summary(props) {
 
                         </View>
 
-                        <View
-                            style={{ ...styles.summaryChartContainer, width: '52%', height: 'auto', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}
+                        <TouchableOpacity style={{ ...styles.summaryChartContainer, width: '52%', height: 'auto', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}
+                            onPress={() => setIsInputWater(!isInputWater)}
+
                         >
                             <View style={{ ...styles.middleRow, marginBottom: 24 }}>
                                 <View style={{ width: 60, height: 65, backgroundColor: '#DAF1FF', borderRadius: 10, ...styles.middleRow }}>
@@ -525,7 +619,7 @@ function Summary(props) {
                                 <View style={{ marginLeft: 14 }}>
                                     <Text style={{ fontSize: 24, fontWeight: '700' }}>
                                         {
-                                            400
+                                            waterMass
                                         }ml
                                     </Text>
                                     <Text style={{ color: '#727272', fontSize: 15 }}>
@@ -533,20 +627,53 @@ function Summary(props) {
                                     </Text>
                                 </View>
                             </View>
+                            {
+                                isInputWater ?
+                                    <View style={{ width: '100%' }} >
+                                        <Input name='waterMass' title='Amount of water' control={control} rules={{ required: 'This is required' }} errors={errors} inputStyle={{ width: '100%' }} keyboardType={'numeric'} placeholder={'ml'} defaultValue={watch('waterMass' || waterMass)} />
 
-                            <View style={{ ...styles.middleRow, flexWrap: 'wrap' }}>
-                                {
-                                    Array.apply(null, { length: 8 }).map((ele, idx) => (
-                                        <View key={idx} style={{ marginBottom: 8 }}>
-                                            <Image
-                                                source={require('../../../assets/water-glass.png')}
-                                                style={{ width: 40, height: 40 }}
-                                            />
+                                        <CustomButton
+                                            title='Drink'
+                                            buttonColor='blue'
+                                            width={'45%'}
+                                            height={40}
+                                            borderRadius={12}
+                                            fontSize={14}
+                                            type={'submit'}
+                                            onPress={handleSubmit(onSubmit)}
+                                        />
+                                    </View>
+                                    :
+                                    <View
+
+                                    >
+
+
+                                        <View style={{ ...styles.middleRow, flexWrap: 'wrap' }}>
+                                            {
+                                                Array.apply(null, { length: 8 }).map((ele, idx) => (
+                                                    <View key={idx} style={{ marginBottom: 8 }}>
+                                                        {
+                                                            idx <= (waterMass / 250) - 1 ?
+                                                                <Image
+                                                                    source={require('../../../assets/water-glass.png')}
+                                                                    style={{ width: 40, height: 40 }}
+                                                                /> :
+                                                                <Image
+                                                                    source={require('../../../assets/empty-water-glass.png')}
+                                                                    style={{ width: 40, height: 40 }}
+                                                                />
+
+                                                        }
+                                                    </View>
+                                                ))
+                                            }
                                         </View>
-                                    ))
-                                }
-                            </View>
-                        </View>
+                                    </View>
+                            }
+
+                        </TouchableOpacity>
+
                     </View>
 
 
@@ -564,7 +691,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'white',
-        paddingTop: 16,
         width: '100%',
         height: '100%',
     },

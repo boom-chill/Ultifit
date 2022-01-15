@@ -15,16 +15,8 @@ const HistoriesSchema = new Schema({
         required: false,
     },
 
-    water: {
-        _id: false,
-        quantity: {
-            required: false,
-            type: Number, // tính theo số lần uống
-        },
-        mass: {
-            required: false,
-            type: Number, // tính theo ml
-        },
+    mass: {
+        type: Number, // tính theo ml
         required: false,
     },
 

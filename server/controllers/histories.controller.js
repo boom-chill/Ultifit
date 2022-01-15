@@ -286,3 +286,94 @@ export const patchHistory = async (req, res) => {
         })
     }
 }
+
+export const postDrinkHistory = async (req, res) => {
+    console.log('Post Drink Histories')
+    try {
+        const username = req.query.username
+
+        const start = new Date()
+        start.setHours(0, 0, 0, 0)
+
+        const end = new Date()
+        end.setHours(23, 59, 59, 999)
+
+        const data = {
+            ...req.body,
+            type: 'water',
+            name: 'water',
+            author: username,
+            calories: 0,
+        }
+        
+
+        let hitories = await historiesModel.findOne({
+            author: username, type: 'water'
+        }, {createdAt: 0, updatedAt: 0, __v: 0, author: 0, name: 0, calories: 0}).sort({time: "desc"})
+
+        const lastDay = new Date(hitories.time)
+
+        if(lastDay > start && lastDay < end) { //in
+            await historiesModel.findOneAndUpdate({
+                _id: hitories._id
+            }, {...req.body}, {returnNewDocument: true})
+
+        } else {
+            const newAddHistories = new historiesModel({
+                ...data
+            })
+    
+            await newAddHistories.save()
+        }
+
+
+        res.json({
+            error: false,
+            message: data,
+        })
+     } catch (error) {
+         console.log('error', error)
+         res.json({
+             error: true,
+             message: error
+         })
+     }
+}
+
+export const getDrinkHistory = async (req, res) => {
+    console.log('Get Drink Histories')
+    try {
+        const username = req.query.username
+
+        const start = new Date()
+        start.setHours(0, 0, 0, 0)
+
+        const end = new Date()
+        end.setHours(23, 59, 59, 999)
+
+        let hitories = await historiesModel.findOne({
+            author: username, type: 'water'
+        }, {createdAt: 0, updatedAt: 0, __v: 0, author: 0, name: 0, calories: 0}).sort({time: "desc"})
+
+        const lastDay = new Date(hitories.time)
+
+        let data = { 
+            mass: 0
+         }
+
+        if(lastDay > start && lastDay < end) { //in
+           data = hitories
+        } 
+
+        res.json({
+            error: false,
+            message: data,
+        })
+     } catch (error) {
+         console.log('error', error)
+         res.json({
+             error: true,
+             message: error
+         })
+     }
+}
