@@ -1,6 +1,6 @@
 # INFO
 - an app for active people who are interested in exercising and calories calculating at any time.
-- This app provides foods, sessions calories to you. Besides you can do exercise follow instruction of this app
+- This app provides food, sessions calories to you. Besides, you can do exercises following the instructions of this app
 - This project is built by expo
 
 # RUN
