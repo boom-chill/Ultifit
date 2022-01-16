@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, View, Pressable } from 'react-native'
+import { StyleSheet, Text, View, Pressable, TouchableOpacity } from 'react-native'
 
 export default function CustomButton(props) {
     let { type, title, buttonColor, buttonStyle, titleStyle, onPress, width, height, borderRadius, containerStyle, fontSize } = props
@@ -26,7 +26,7 @@ export default function CustomButton(props) {
 
     return (
         <View style={{ width: '100%', ...styles.button, ...containerStyle }}>
-            <Pressable
+            <TouchableOpacity
                 onPress={onPress}
                 type={type}
                 style={{ width: width, height: height, borderRadius: borderRadius, backgroundColor: buttonColor, ...buttonColor, ...styles.button, ...buttonStyle }}
@@ -36,7 +36,7 @@ export default function CustomButton(props) {
                 >
                     {title}
                 </Text>
-            </Pressable>
+            </TouchableOpacity>
         </View>
     )
 }

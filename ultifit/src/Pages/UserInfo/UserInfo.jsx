@@ -24,6 +24,7 @@ export default function UserInfo({ navigation, screenName }) {
             const dataSend = {
                 ...data,
                 username: user.username,
+                premium: false,
                 avatar: image?.base64 ?? null
             }
 

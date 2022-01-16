@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { baseWideUri, baseWideUrl } from '../../../constants/url';
 
@@ -18,10 +18,14 @@ function AppHeader(props) {
                 <View style={styles.headerAvatar}>
                     {
                         user ?
-                            <Image
-                                source={{ uri: avaUrl }}
-                                style={{ width: 36, height: 36, borderRadius: 36 }}
-                            /> : <View />
+                            <TouchableOpacity
+                            >
+                                <Image
+                                    source={{ uri: avaUrl }}
+                                    style={{ width: 36, height: 36, borderRadius: 36, borderColor: '#C1C1C1', borderWidth: 1 }}
+                                />
+                            </TouchableOpacity>
+                            : <View />
                     }
                 </View>
 

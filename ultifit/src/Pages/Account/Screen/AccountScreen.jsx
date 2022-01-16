@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View, Text, SafeAreaView, ScrollView, Image } from 'react-native';
+import { StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity } from 'react-native';
 
 import { useSelector, useDispatch } from 'react-redux'
 import { addUser, deleteUser } from '../../../features/user/user'
@@ -11,12 +11,17 @@ import { useForm } from "react-hook-form";
 import { baseWideUrl, baseUrl } from '../../../../constants/url';
 import axios from 'axios'
 import { deleteFoods } from '../../../features/food/food';
+import PopupModal from './../../../Components/PopupModal/PopupModal';
 
 export default function AccountScreen() {
     const dispatch = useDispatch()
     const user = useSelector((state) => state.user.user)
 
-    const { handleSubmit, control, formState: { errors } } = useForm();
+    const [isOpenPopup, setIsOpenPopup] = React.useState(false)
+
+    const [isActivePremium, setIsActivePremium] = React.useState('')
+
+    const { handleSubmit, control, formState: { errors }, watch } = useForm();
     const imgUrl = baseWideUrl + '/' + user.avatar
     const [image, setImage] = React.useState({
         uri: imgUrl
@@ -25,7 +30,7 @@ export default function AccountScreen() {
     const onSubmit = (data) => {
         if (user?.username) {
             const dataSend = {
-                data: { ...data },
+                data: { ...data, premium: user.premium },
                 newAvatar: (image?.base64 ?? null)
             }
 
@@ -76,10 +81,112 @@ export default function AccountScreen() {
         dispatch(deleteFoods())
     }
 
+    const PostPremium = () => {
+        if (watch('premium') != '') {
+            if (user?.username) {
+                const dataSend = {
+                    premium: watch('premium'),
+                }
+
+                try {
+                    axios.post(`${baseUrl}/api/users/premium/${user.username}`,
+                        dataSend
+                    ).then((response) => {
+                        const resData = response.data
+
+                        console.log(resData)
+                        dispatch(addUser(resData.message))
+
+                        console.log(resData.message.isActive)
+                        if (resData.message.isActive) {
+                            setIsActivePremium('Congratulation! You are a premium member now')
+                            setTimeout(() => {
+                                setIsOpenPopup(false)
+                            }, 3000)
+                        } else {
+                            setIsActivePremium('Sorry! Your code was wrong')
+                        }
+                    })
+                } catch (error) {
+                    console.log(error)
+                }
+            } else {
+
+            }
+        }
+    }
+
+    React.useEffect(() => {
+        setIsActivePremium('')
+    }, [isOpenPopup])
+
     return (
         <SafeAreaView style={{ width: '100%', height: '100%', backgroundColor: 'white' }} >
             <ScrollView >
-                <View style={{ ...styles.container, marginTop: 16 }}>
+
+                <PopupModal isOpen={isOpenPopup} setIsOpen={setIsOpenPopup} >
+                    {
+                        <View style={{ ...styles.middleCol }}>
+                            <View style={{ ...styles.loginInputWrapper, marginBottom: 8 }} >
+                                <Input name='premium' title='Premium Code' control={control} rules={{ required: 'This is required' }} errors={errors} keyboardType={'numeric'} />
+                            </View>
+                            <Text style={{ fontWeight: '700', marginBottom: isActivePremium != '' ? 8 : 0 }}>
+                                {isActivePremium}
+                            </Text>
+                            <CustomButton
+                                title='Send'
+                                buttonColor='red'
+                                width={'100%'}
+                                height={40}
+                                onPress={() => PostPremium()}
+                                buttonStyle={{ borderColor: 'white', borderWidth: 1, borderRadius: 10 }}
+                                titleStyle={{ color: 'white', fontSize: 16 }}
+                            />
+                        </View>
+                    }
+                </PopupModal>
+
+                <View style={{ ...styles.container, marginTop: 24 }}>
+                    <TouchableOpacity style={{ width: '100%' }}
+                        onPress={() => !user.premium ? setIsOpenPopup(true) : {}}
+                    >
+
+                        <View style={{ width: '100%' }}>
+
+                            <View style={{ ...styles.middleRow, width: '25%', height: 30, borderTopRightRadius: 10, borderBottomRightRadius: 10, borderLeftColor: 'white', position: 'relative', backgroundColor: !user.premium ? 'white' : '#FFD02B', borderWidth: !user.premium ? 1 : 0 }}>
+
+                                {!user.premium ?
+                                    <View style={{ width: '100%', ...styles.middleRow }} >
+                                        <Text style={{ color: 'black', fontWeight: '700', fontSize: 16 }}>
+                                            normal
+                                        </Text>
+                                        <View style={{ position: 'absolute', top: -23, right: -25, transform: [{ rotate: '24deg' }] }}>
+
+                                            <Image
+                                                source={require('../../../../assets/black-normal-crown.png')}
+                                                style={{ width: 40, height: 40 }}
+                                            />
+                                        </View>
+                                    </View>
+                                    :
+                                    <View style={{ width: '100%', ...styles.middleRow }} >
+                                        <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>
+                                            premium
+                                        </Text>
+                                        <View style={{ position: 'absolute', top: -23, right: -25, transform: [{ rotate: '24deg' }] }}>
+
+                                            <Image
+                                                source={require('../../../../assets/premium-crown.png')}
+                                                style={{ width: 40, height: 40 }}
+                                            />
+                                        </View>
+                                    </View>
+                                }
+
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+
                     <View style={styles.loginInputContainer}>
 
                         <View style={{ ...styles.middleCol }}>

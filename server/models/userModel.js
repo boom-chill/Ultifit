@@ -45,6 +45,11 @@ const UserSchema = new Schema({
         type: Number,
         required: false,
     },
+    premium: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
     // TDEE sẽ tự tính trên client
 
     //auto add createdAt, updatedAt

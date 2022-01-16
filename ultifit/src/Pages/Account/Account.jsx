@@ -18,7 +18,7 @@ function Account({ navigation }) {
             tabBarStyle: { shadowColor: 'white' },
         })} >
             <TopTab.Screen name="AccountScreen" component={AccountScreen} options={{ title: 'Account' }} />
-            <TopTab.Screen name="FriendsScreen" component={FriendsScreen} options={{ title: 'Friends' }} />
+            {/* <TopTab.Screen name="FriendsScreen" component={FriendsScreen} options={{ title: 'Friends' }} /> */}
             <TopTab.Screen name="HistoryScreen" component={HistoriesScreen} options={{ title: 'Histories' }} />
 
         </TopTab.Navigator>

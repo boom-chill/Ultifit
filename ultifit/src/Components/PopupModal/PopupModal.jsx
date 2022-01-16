@@ -8,7 +8,7 @@ import { Video, AVPlaybackStatus } from 'expo-av';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer'
 
 
-export default function PopupModal({ isOpen, children }) {
+export default function PopupModal({ isOpen, children, setIsOpen }) {
 
     const [showModal, setShowModal] = React.useState(isOpen)
 
@@ -36,7 +36,7 @@ export default function PopupModal({ isOpen, children }) {
                 }}>
 
                     <TouchableOpacity
-                        onPress={() => setShowModal(false)}
+                        onPress={() => { setShowModal(false); setIsOpen(false) }}
                         style={{ ...styles.middleRow, justifyContent: 'flex-end', position: 'absolute', top: 15, right: 15 }}
                     >
                         <View >

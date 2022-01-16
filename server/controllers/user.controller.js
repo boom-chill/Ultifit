@@ -63,3 +63,47 @@ export const patchUser = async (req, res) => {
             })
     }
 }
+
+export const postPremium = async (req, res) => {
+    console.log('Post Premium User')
+    try {
+        const premium = req.body.premium
+
+        const username = req.params.id
+
+        const user = await userModel.findOne({username: username}, {_id: 0, password: 0, __v:0})
+
+        const code = new Date(user.createdAt).valueOf()
+        console.log('premium code of', username, code, Number(premium))
+
+        let rightCode = false
+
+        if(code == Number(premium) ) {
+            await userModel.findOneAndUpdate({username: username}, {
+                premium: true
+            })
+            rightCode = true
+        }
+
+        // await userModel.findOneAndUpdate({username: username}, {
+        //     ...data
+        // })
+
+        const existUser = await userModel.findOne({username: username}, {_id: 0, createdAt: 0, password: 0, __v:0})
+
+        res.json({
+            message: {
+                data: existUser,
+                isActive: rightCode,
+            },
+            error: false,
+        })
+
+    } catch (error) {
+        console.log(error)
+            res.json({
+                message: error,
+                error: false,
+            })
+    }
+}
