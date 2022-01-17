@@ -22,7 +22,7 @@ function AppHeader(props) {
                             >
                                 <Image
                                     source={{ uri: avaUrl }}
-                                    style={{ width: 36, height: 36, borderRadius: 36, borderColor: '#C1C1C1', borderWidth: 1 }}
+                                    style={{ width: 36, height: 36, borderRadius: 36, borderColor: !user.premium ? '#C1C1C1' : '#FFD02B', borderWidth: 3 }}
                                 />
                             </TouchableOpacity>
                             : <View />

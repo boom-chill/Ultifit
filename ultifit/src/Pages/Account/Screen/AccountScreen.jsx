@@ -18,6 +18,8 @@ export default function AccountScreen() {
     const user = useSelector((state) => state.user.user)
 
     const [isOpenPopup, setIsOpenPopup] = React.useState(false)
+    const [isChangePasswordOpenPopup, setIsChangePasswordOpenPopup] = React.useState(false)
+    const [changePasswordOpenPopupMess, setChangePasswordOpenPopupMess] = React.useState('')
 
     const [isActivePremium, setIsActivePremium] = React.useState('')
 
@@ -116,9 +118,49 @@ export default function AccountScreen() {
         }
     }
 
+    const postChangePassword = (data) => {
+        if (data.changeNewPassword == data.changeConfirmPassword) {
+            const dataSend = {
+                currentPassword: data.changePassword,
+                changeNewPassword: data.changeNewPassword,
+            }
+            console.log(dataSend)
+
+            if (user?.username) {
+                try {
+                    axios.post(`${baseUrl}/api/users/change-password/${user.username}`,
+                        dataSend
+                    ).then((response) => {
+                        const resData = response.data
+
+                        setChangePasswordOpenPopupMess(resData.message)
+
+                        if (!resData.error) {
+                            setTimeout(() => {
+                                setIsChangePasswordOpenPopup(false)
+                            }, 3000)
+                        }
+
+                    })
+                } catch (error) {
+                    console.log(error)
+                }
+            } else {
+
+            }
+
+        } else {
+            setChangePasswordOpenPopupMess('Your confirm password doesn\'t match!')
+        }
+    }
+
     React.useEffect(() => {
         setIsActivePremium('')
     }, [isOpenPopup])
+
+    React.useEffect(() => {
+        setChangePasswordOpenPopupMess('')
+    }, [isChangePasswordOpenPopup])
 
     return (
         <SafeAreaView style={{ width: '100%', height: '100%', backgroundColor: 'white' }} >
@@ -126,25 +168,58 @@ export default function AccountScreen() {
 
                 <PopupModal isOpen={isOpenPopup} setIsOpen={setIsOpenPopup} >
                     {
-                        <View style={{ ...styles.middleCol }}>
+                        <View style={{ ...styles.middleCol, width: 240 }}>
+                            <Text style={{ fontWeight: '700', fontSize: 18, marginBottom: 16 }}>
+                                Premium code
+                            </Text>
                             <View style={{ ...styles.loginInputWrapper, marginBottom: 8 }} >
                                 <Input name='premium' title='Premium Code' control={control} rules={{ required: 'This is required' }} errors={errors} keyboardType={'numeric'} />
                             </View>
-                            <Text style={{ fontWeight: '700', marginBottom: isActivePremium != '' ? 8 : 0 }}>
+                            <Text style={{ fontWeight: '700', marginBottom: isActivePremium != '' ? 8 : 0, color: '#FF3626' }}>
                                 {isActivePremium}
                             </Text>
                             <CustomButton
                                 title='Send'
-                                buttonColor='red'
-                                width={'100%'}
+                                width={'80%'}
                                 height={40}
-                                onPress={() => PostPremium()}
-                                buttonStyle={{ borderColor: 'white', borderWidth: 1, borderRadius: 10 }}
-                                titleStyle={{ color: 'white', fontSize: 16 }}
+                                onPress={handleSubmit(PostPremium)}
+                                buttonStyle={{ borderColor: '#F17F76', borderWidth: 1, borderRadius: 10 }}
+                                titleStyle={{ color: '#F17F76', fontSize: 16 }}
                             />
                         </View>
                     }
                 </PopupModal>
+
+                <PopupModal isOpen={isChangePasswordOpenPopup} setIsOpen={setIsChangePasswordOpenPopup} >
+                    {
+                        <View style={{ ...styles.middleCol, width: 240 }}>
+                            <Text style={{ fontWeight: '700', fontSize: 18, marginBottom: 16 }}>
+                                Change password
+                            </Text>
+                            <View style={{ ...styles.loginInputWrapper, marginBottom: 8 }} >
+                                <Input name='changePassword' title='Current password' control={control} rules={{ required: 'This is required' }} errors={errors} secureTextEntry={true} />
+                            </View>
+                            <View style={{ ...styles.loginInputWrapper, marginBottom: 8 }} >
+                                <Input name='changeNewPassword' title='New password' control={control} rules={{ required: 'This is required' }} errors={errors} secureTextEntry={true} />
+                            </View>
+                            <View style={{ ...styles.loginInputWrapper, marginBottom: 8 }} >
+                                <Input name='changeConfirmPassword' title='Confirm new password' control={control} rules={{ required: 'This is required' }} errors={errors} secureTextEntry={true} />
+                            </View>
+                            <Text style={{ fontWeight: '700', marginBottom: changePasswordOpenPopupMess != '' ? 8 : 0, color: changePasswordOpenPopupMess == 'Password changed!' ? '#0CB014' : '#FF3626' }}>
+                                {changePasswordOpenPopupMess}
+                            </Text>
+                            <CustomButton
+                                title='Update password'
+                                width={'80%'}
+                                height={40}
+                                onPress={handleSubmit(postChangePassword)}
+                                buttonStyle={{ borderColor: '#26ADFF', borderWidth: 1, borderRadius: 10 }}
+                                titleStyle={{ color: '#26ADFF', fontSize: 16 }}
+                            />
+                        </View>
+                    }
+                </PopupModal>
+
 
                 <View style={{ ...styles.container, marginTop: 24 }}>
                     <TouchableOpacity style={{ width: '100%' }}
@@ -255,7 +330,7 @@ export default function AccountScreen() {
                             title='Change Password'
                             width={'80%'}
                             height={40}
-                            onPress={() => console.log('none')}
+                            onPress={() => setIsChangePasswordOpenPopup(true)}
                             buttonStyle={{ borderColor: '#C1C1C1', borderWidth: 1, borderRadius: 10 }}
                             titleStyle={{ color: '#6E6E6E', fontSize: 16 }}
                         />

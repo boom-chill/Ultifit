@@ -356,10 +356,8 @@ function Summary(props) {
 
     if (!dayStatistic && !viewCol) {
         return (
-            <View>
-                <Text>
-                    Loading...
-                </Text>
+            <View style={{ ...styles.container }}>
+
             </View>
         )
     }

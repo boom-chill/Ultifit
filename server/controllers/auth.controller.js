@@ -85,7 +85,7 @@ export const postRegister = async (req, res) => {
             })
         }
         
-        //check password
+        //create password
         const passwordHashed = await bcrypt.hash(password, 12)
 
         //add user into db

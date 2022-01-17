@@ -59,7 +59,7 @@ export const patchUser = async (req, res) => {
         console.log(error)
             res.json({
                 message: error,
-                error: false,
+                error: true,
             })
     }
 }
@@ -103,7 +103,51 @@ export const postPremium = async (req, res) => {
         console.log(error)
             res.json({
                 message: error,
+                error: true,
+            })
+    }
+}
+
+export const postChangePassword =  async (req, res) => {
+    console.log('Post Change Password')
+    try {
+        const username = req.params.id
+        const data = req.body
+
+        const password = data.currentPassword
+        const newPassword = data.changeNewPassword
+
+        let existUser = await userModel.findOne({username: username}, {_id: 0, createdAt: 0})
+
+        //check password
+        const isPasswordCorrect = await bcrypt.compare(password, existUser.password)
+        
+        if(isPasswordCorrect) {
+             //create password
+            const passwordHashed = await bcrypt.hash(newPassword, 12)
+
+            await userModel.findOneAndUpdate({username: username}, {password: passwordHashed })
+
+            res.json({
+                message: 'Password changed!',
+                isChange: true,
                 error: false,
+            })
+
+        } else {
+            res.json({
+                message: 'Wrong password!',
+                isChange: false,
+                error: true, 
+            })
+        }
+
+     } catch (error) {
+        console.log(error)
+            res.json({
+                message: error,
+                isChange: false,
+                error: true,
             })
     }
 }
