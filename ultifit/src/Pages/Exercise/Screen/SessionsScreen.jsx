@@ -299,7 +299,7 @@ export default function SessionScreen() {
                         <ScrollView  >
                             <View style={styles.headerWrapper}>
                                 <Text style={styles.headerText}>
-                                    Edit Food
+                                    Edit Session
                                 </Text>
                             </View>
 

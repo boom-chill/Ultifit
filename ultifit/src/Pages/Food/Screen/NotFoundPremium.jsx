@@ -12,7 +12,7 @@ export default function NotFoundPremium() {
 
                     <View style={{ width: '100%', ...styles.middleCol }} >
                         <Text style={{ color: 'white', fontWeight: '700', fontSize: 18 }}>
-                            You need to be a premium member to use this feature
+                            You need to be a VIP member to use this feature
                         </Text>
                         <View style={{ position: 'absolute', top: -43, right: -34, transform: [{ rotate: '24deg' }] }}>
 

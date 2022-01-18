@@ -130,7 +130,6 @@ export const getSession = async (req, res) => {
 
 export const patchSession = async (req, res) => {
     console.log('Patch Session')
-    console.log(req.body)
     try {
         const username = req.query.username
         let data = req.body.data

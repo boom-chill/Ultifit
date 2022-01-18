@@ -14,14 +14,23 @@
 - My mail: phuongnam.infl@gmail.com -->
 
 # DEMO IMAGES
+- Home screen
+<img src="./imgs/sc-home-screen.png" alt="img" height="400"/>
+
 - Account screen
-<img src="./imgs/sc-account.png" alt="img" height="400"/>
+<img src="./imgs/sc-user-screen.png" alt="img" height="400"/>
 
 - Foods screen
-<img src="./imgs/sc-foods.png" alt="img" height="400"/>
+<img src="./imgs/sc-foods-screen.png" alt="img" height="400"/>
+
+- Ingredients screen
+<img src="./imgs/sc-ingredients-screen.png" alt="img" height="400"/>
+
+- Sessions screen
+<img src="./imgs/sc-sessions-screen.png" alt="img" height="400"/>
 
 - Exercises screen
-<img src="./imgs/sc-exercises.png" alt="img" height="400"/>
+<img src="./imgs/sc-exercises-screen.png" alt="img" height="400"/>
 
 # Note
-- This project is being developed
+- This is VIP account

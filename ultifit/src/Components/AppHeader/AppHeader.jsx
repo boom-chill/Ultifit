@@ -36,10 +36,10 @@ function AppHeader(props) {
                 </View>
 
                 <View>
-                    <Image
+                    {/* <Image
                         source={require('../../../assets/icon-notification.png')}
                         style={{ width: 36, height: 36 }}
-                    />
+                    /> */}
                 </View>
             </View>
         </View>

@@ -170,7 +170,7 @@ export default function AccountScreen() {
                     {
                         <View style={{ ...styles.middleCol, width: 240 }}>
                             <Text style={{ fontWeight: '700', fontSize: 18, marginBottom: 16 }}>
-                                Premium code
+                                VIP code
                             </Text>
                             <View style={{ ...styles.loginInputWrapper, marginBottom: 8 }} >
                                 <Input name='premium' title='Premium Code' control={control} rules={{ required: 'This is required' }} errors={errors} keyboardType={'numeric'} />
@@ -246,7 +246,7 @@ export default function AccountScreen() {
                                     :
                                     <View style={{ width: '100%', ...styles.middleRow }} >
                                         <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>
-                                            premium
+                                            VIP
                                         </Text>
                                         <View style={{ position: 'absolute', top: -23, right: -25, transform: [{ rotate: '24deg' }] }}>
 
